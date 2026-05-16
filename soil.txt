@@ -1,0 +1,36 @@
+Soil Types and Crop Suitability Guide
+
+There are different types of soil used for agriculture.
+
+Alluvial Soil:
+Found near river areas. Very fertile. Suitable for rice, wheat, sugarcane, and pulses.
+
+Black Soil:
+Also called regur soil. Good for cotton. Retains moisture well. Suitable for cotton, soybean, sunflower.
+
+Red Soil:
+Low in nutrients but responds to fertilizers. Suitable for millets, groundnut, pulses.
+
+Laterite Soil:
+Found in high rainfall areas. Suitable for tea, coffee, rubber, coconut.
+
+Sandy Soil:
+Drains water quickly. Suitable for groundnut, watermelon, coconut.
+
+Clay Soil:
+Holds water for long time. Suitable for paddy and rice crops.
+
+Loamy Soil:
+Best soil for agriculture. Balanced sand and clay. Suitable for vegetables, wheat, sugarcane.
+
+Soil pH Guide:
+pH below 6 = acidic soil
+pH 6 to 7.5 = best for most crops
+pH above 8 = alkaline soil
+
+To improve soil fertility:
+Add compost
+Use green manure
+Practice crop rotation
+Add organic matter
+Avoid overuse of chemicals

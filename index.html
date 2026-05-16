@@ -1,0 +1,1082 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriculture Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #dcedc8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-text {
+            text-align: center;
+            color: #2e7d32;
+            font-size: 1.4rem;
+            font-weight: 700;
+            opacity: 0.5;
+            user-select: none;
+        }
+
+        /* ── Toggle Button ── */
+        #chat-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: linear-gradient(145deg, #43a047, #2e7d32);
+            color: white;
+            font-size: 28px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(46,125,50,0.45);
+            z-index: 1000;
+            transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
+        }
+        #chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 28px rgba(46,125,50,0.55);
+        }
+        #chat-toggle.open { transform: rotate(15deg) scale(1.05); }
+
+        /* Pulse ring */
+        #chat-toggle::after {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: rgba(46,125,50,0.3);
+            animation: pulse 2.2s ease-out infinite;
+        }
+        @keyframes pulse {
+            0%   { transform: scale(1);   opacity: 0.7; }
+            100% { transform: scale(1.9); opacity: 0; }
+        }
+
+        /* ── Chat Popup ── */
+        #chat-popup {
+            position: fixed;
+            bottom: 104px;
+            right: 24px;
+            width: 350px;
+            height: 500px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 999;
+            transform-origin: bottom right;
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.25s ease;
+        }
+        #chat-popup.chat-visible {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Header ── */
+        .chat-header {
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+            color: white;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .header-icon {
+            font-size: 22px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .header-info { flex: 1; }
+        .header-info .title { font-weight: 700; font-size: 15px; }
+        .header-info .subtitle { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+        .online-dot {
+            width: 8px; height: 8px;
+            background: #69f0ae;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            box-shadow: 0 0 6px #69f0ae;
+        }
+        .close-btn {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+            padding: 4px;
+            line-height: 1;
+        }
+        .close-btn:hover { opacity: 1; }
+
+        /* ── Chat Box ── */
+        .chat-box {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            background: #f7faf7;
+            scroll-behavior: smooth;
+        }
+        .chat-box::-webkit-scrollbar { width: 4px; }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+        .chat-box::-webkit-scrollbar-thumb { background: #c8e6c9; border-radius: 4px; }
+
+        /* ── Messages ── */
+        .message {
+            margin: 8px 0;
+            display: flex;
+            flex-direction: column;
+            animation: fadeSlide 0.3s ease both;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user { align-items: flex-end; }
+        .message.bot  { align-items: flex-start; }
+
+        .bubble {
+            max-width: 80%;
+            padding: 9px 13px;
+            border-radius: 16px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .message.user .bubble {
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.bot .bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .label {
+            font-size: 10px;
+            color: #aaa;
+            margin: 2px 4px;
+        }
+
+        /* Typing indicator */
+        .typing .bubble {
+            display: flex; gap: 5px; align-items: center;
+            padding: 12px 16px;
+        }
+        .dot {
+            width: 7px; height: 7px;
+            background: #a5d6a7;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40%            { transform: translateY(-7px); }
+        }
+
+        /* Quick replies */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 0 2px;
+        }
+        .quick-reply {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            font-weight: 600;
+        }
+        .quick-reply:hover {
+            background: #c8e6c9;
+            transform: translateY(-1px);
+        }
+
+        /* ── Input Area ── */
+        .chat-input-area {
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #e8f5e9;
+            padding: 8px 10px;
+            gap: 8px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid #c8e6c9;
+            border-radius: 24px;
+            outline: none;
+            font-size: 13.5px;
+            font-family: 'Nunito', sans-serif;
+            background: #f7faf7;
+            color: #333;
+            transition: border-color 0.2s;
+        }
+        .chat-input-area input:focus {
+            border-color: #43a047;
+            background: #fff;
+        }
+        .chat-input-area button {
+            width: 42px; height: 42px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 10px rgba(46,125,50,0.35);
+        }
+        .chat-input-area button:hover { transform: scale(1.08); }
+        .chat-input-area button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="demo-text">🌱 Agriculture Assistant Demo<br><small style="font-size:0.8rem;font-weight:400">Click the robot button →</small></div>
+
+    <!-- Toggle Button 
+    <div id="chat-toggle" onclick="toggleChat()" title="Chat with Agriculture Bot">🤖</div>
+
+    <!-- Chat Popup 
+    <div id="chat-popup">
+        <div class="chat-header">
+            <div class="header-icon">🌾</div>
+            <div class="header-info">
+                <div class="title">Agriculture Bot</div>
+                <div class="subtitle"><span class="online-dot"></span>Online · Ready to help</div>
+            </div>
+            <span onclick="toggleChat()" class="close-btn">✖</span>
+        </div>
+
+        <div id="chat-box" class="chat-box"></div>
+
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Ask about crops, soil, fertilizer..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" title="Send">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // ── DOM refs ──
+        const popup   = document.getElementById('chat-popup');
+        const toggle  = document.getElementById('chat-toggle');
+        const chatBox = document.getElementById('chat-box');
+        const input   = document.getElementById('user-input');
+
+        // ── State ──
+        let isOpen  = false;
+        let greeted = false;
+        let isBusy  = false;           // prevents double-sends while waiting for API
+        let knowledge = [];            // populated from knowledge.json
+
+        // ── Config ──
+        const API_KEY = "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";            // 🔑 Replace with your OpenRouter API key
+        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+        const MODEL   = "openai/gpt-4o-mini";   // OpenRouter model string
+
+        const quickReplies = ['Soil pH tips', 'Best fertilizers', 'Pest control', 'Watering schedule'];
+
+        // ── Agriculture keyword filter ──
+        const agricultureKeywords = [
+            "rice","wheat","maize","corn","cotton","sugarcane","groundnut","millets","pulses",
+            "vegetable","fruit","tomato","potato","onion","cabbage","cucumber","banana","mango",
+            "orange","apple","tea","coffee","rubber","coconut",
+            "soil","loamy","sandy","clay","black soil","red soil","laterite","alluvial","fertile","ph",
+            "fertilizer","urea","ammonium sulfate","dap","ssp","mop","sop","nitrogen","phosphorus",
+            "potassium","organic","manure","compost","vermicompost",
+            "crop rotation","irrigation","drip","sprinkler","seeds","sowing","harvest","planting",
+            "nursery","mulching","green manure","organic farming","pesticide","herbicide",
+            "farmer","farm","agriculture","agricultural","subsidy","scheme","loan","insurance",
+            "pm-kisan","soil health card","equipment","tractor","fertilizer recommendation",
+            "pest","insect","disease","fungus","blight","aphid","weevil","bollworm",
+            "rainfall","temperature","humidity","climate","drought","flood","water","moisture","drainage"
+        ];
+
+        function isAgricultureQuery(query) {
+            const q = query.toLowerCase();
+            return agricultureKeywords.some(word => q.includes(word));
+        }
+
+        // ── Knowledge base lookup (exact substring match on question field) ──
+        function findAnswerFromKnowledge(query) {
+            const q = query.toLowerCase();
+            for (const item of knowledge) {
+                if (item.question && q.includes(item.question.toLowerCase())) {
+                    return item.answer;
+                }
+            }
+            return null;
+        }
+
+        // ── Load knowledge.json (graceful fail if missing) ──
+        fetch("knowledge.json")
+            .then(r => r.json())
+            .then(data => { knowledge = data; console.log(`✅ Loaded ${data.length} knowledge entries`); })
+            .catch(() => console.warn("⚠️ knowledge.json not found — skipping local KB"));
+
+        // ── UI helpers ──
+        function toggleChat() {
+            isOpen = !isOpen;
+            popup.classList.toggle('chat-visible', isOpen);
+            toggle.classList.toggle('open', isOpen);
+            if (isOpen && !greeted) {
+                greeted = true;
+                setTimeout(() => {
+                    addBot("👋 Hello, farmer! I'm your Agriculture Assistant. Ask me anything about crops, soil, pests, or farming tips!", true);
+                }, 350);
+            }
+            if (isOpen) setTimeout(() => input.focus(), 400);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function addUser(text) {
+            const el = document.createElement('div');
+            el.className = 'message user';
+            el.innerHTML = `<span class="label">You</span><div class="bubble">${escapeHTML(text)}</div>`;
+            chatBox.appendChild(el);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addBot(text, showQuick = false) {
+            const el = document.createElement('div');
+            el.className = 'message bot';
+            // Allow simple line breaks from API responses
+            el.innerHTML = `<span class="label">🌾 AgriBot</span><div class="bubble">${escapeHTML(text).replace(/\n/g,'<br>')}</div>`;
+            chatBox.appendChild(el);
+            if (showQuick) {
+                const qr = document.createElement('div');
+                qr.className = 'quick-replies';
+                quickReplies.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-reply';
+                    btn.textContent = q;
+                    btn.onclick = () => { if (!isBusy) { input.value = q; sendMessage(); } };
+                    qr.appendChild(btn);
+                });
+                chatBox.appendChild(qr);
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showTyping() {
+            const el = document.createElement('div');
+            el.className = 'message bot typing';
+            el.id = 'typing-indicator';
+            el.innerHTML = `<span class="label">🌾 AgriBot</span><div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+            chatBox.appendChild(el);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typing-indicator');
+            if (t) t.remove();
+        }
+
+        function setInputBusy(busy) {
+            isBusy = busy;
+            input.disabled = busy;
+            document.querySelector('.chat-input-area button').disabled = busy;
+        }
+
+        // ── OpenRouter API call ──
+        async function fetchFromOpenRouter(message) {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "HTTP-Referer": window.location.href,   // required by OpenRouter
+                    "X-Title": "Agriculture Chatbot"
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: [
+                        {
+                            role: "system",
+                            content: "You are an expert agriculture assistant. Only answer agriculture-related questions (crops, soil, fertilizers, pests, irrigation, farming practices, weather, schemes). If the question is outside agriculture, reply exactly: 'Sorry, I cannot answer that question.' Keep answers concise, practical, and farmer-friendly. Use plain text only."
+                        },
+                        { role: "user", content: message }
+                    ],
+                    temperature: 0.3,
+                    max_tokens: 200
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err?.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+
+        // ── Main send handler (3-tier: keyword → KB → API) ──
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text || isBusy) return;
+
+            addUser(text);
+            input.value = '';
+            setInputBusy(true);
+            showTyping();
+
+            // Tier 1 – Off-topic guard
+            if (!isAgricultureQuery(text)) {
+                removeTyping();
+                addBot("🚫 Sorry, I can only answer agriculture-related questions. Try asking about crops, soil, fertilizers, pests, or irrigation!");
+                setInputBusy(false);
+                return;
+            }
+
+            // Tier 2 – Local knowledge base (instant, no API cost)
+            const kbAnswer = findAnswerFromKnowledge(text);
+            if (kbAnswer) {
+                removeTyping();
+                addBot(kbAnswer);
+                setInputBusy(false);
+                return;
+            }
+
+            // Tier 3 – OpenRouter AI (dynamic answer)
+            if (!API_KEY) {
+                // Fallback if no API key configured
+                removeTyping();
+                addBot("⚠️ No API key configured. Please set your OpenRouter API key in the script to get AI-powered answers.");
+                setInputBusy(false);
+                return;
+            }
+
+            try {
+                const answer = await fetchFromOpenRouter(text);
+                removeTyping();
+                addBot(answer);
+            } catch (err) {
+                removeTyping();
+                addBot(`⚠️ Error reaching AI: ${err.message}. Please try again shortly.`);
+                console.error("OpenRouter error:", err);
+            } finally {
+                setInputBusy(false);
+                input.focus();
+            }
+        }
+    </script>
+</body>
+</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriculture Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #dcedc8 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-text {
+            text-align: center;
+            color: #2e7d32;
+            font-size: 1.4rem;
+            font-weight: 700;
+            opacity: 0.5;
+            user-select: none;
+        }
+
+        /* ── Toggle Button ── */
+        #chat-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: linear-gradient(145deg, #43a047, #2e7d32);
+            color: white;
+            font-size: 28px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(46,125,50,0.45);
+            z-index: 1000;
+            transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.25s;
+        }
+        #chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 28px rgba(46,125,50,0.55);
+        }
+        #chat-toggle.open { transform: rotate(15deg) scale(1.05); }
+
+        /* Pulse ring */
+        #chat-toggle::after {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: rgba(46,125,50,0.3);
+            animation: pulse 2.2s ease-out infinite;
+        }
+        @keyframes pulse {
+            0%   { transform: scale(1);   opacity: 0.7; }
+            100% { transform: scale(1.9); opacity: 0; }
+        }
+
+        /* ── Chat Popup ── */
+        #chat-popup {
+            position: fixed;
+            bottom: 104px;
+            right: 24px;
+            width: 350px;
+            height: 500px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 999;
+            transform-origin: bottom right;
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.25s ease;
+        }
+        #chat-popup.chat-visible {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Header ── */
+        .chat-header {
+            background: linear-gradient(135deg, #388e3c, #1b5e20);
+            color: white;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .header-icon {
+            font-size: 22px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .header-info { flex: 1; }
+        .header-info .title { font-weight: 700; font-size: 15px; }
+        .header-info .subtitle { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+        .online-dot {
+            width: 8px; height: 8px;
+            background: #69f0ae;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            box-shadow: 0 0 6px #69f0ae;
+        }
+        .close-btn {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+            padding: 4px;
+            line-height: 1;
+        }
+        .close-btn:hover { opacity: 1; }
+
+        /* ── Chat Box ── */
+        .chat-box {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            background: #f7faf7;
+            scroll-behavior: smooth;
+        }
+        .chat-box::-webkit-scrollbar { width: 4px; }
+        .chat-box::-webkit-scrollbar-track { background: transparent; }
+        .chat-box::-webkit-scrollbar-thumb { background: #c8e6c9; border-radius: 4px; }
+
+        /* ── Messages ── */
+        .message {
+            margin: 8px 0;
+            display: flex;
+            flex-direction: column;
+            animation: fadeSlide 0.3s ease both;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user { align-items: flex-end; }
+        .message.bot  { align-items: flex-start; }
+
+        .bubble {
+            max-width: 80%;
+            padding: 9px 13px;
+            border-radius: 16px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .message.user .bubble {
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.bot .bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .label {
+            font-size: 10px;
+            color: #aaa;
+            margin: 2px 4px;
+        }
+
+        /* Typing indicator */
+        .typing .bubble {
+            display: flex; gap: 5px; align-items: center;
+            padding: 12px 16px;
+        }
+        .dot {
+            width: 7px; height: 7px;
+            background: #a5d6a7;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite;
+        }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40%            { transform: translateY(-7px); }
+        }
+
+        /* Quick replies */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+            padding: 0 2px;
+        }
+        .quick-reply {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            font-weight: 600;
+        }
+        .quick-reply:hover {
+            background: #c8e6c9;
+            transform: translateY(-1px);
+        }
+
+        /* ── Input Area ── */
+        .chat-input-area {
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #e8f5e9;
+            padding: 8px 10px;
+            gap: 8px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid #c8e6c9;
+            border-radius: 24px;
+            outline: none;
+            font-size: 13.5px;
+            font-family: 'Nunito', sans-serif;
+            background: #f7faf7;
+            color: #333;
+            transition: border-color 0.2s;
+        }
+        .chat-input-area input:focus {
+            border-color: #43a047;
+            background: #fff;
+        }
+        .chat-input-area button {
+            width: 42px; height: 42px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 3px 10px rgba(46,125,50,0.35);
+        }
+        .chat-input-area button:hover { transform: scale(1.08); }
+        .chat-input-area button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="demo-text">🌱 Agriculture Assistant Demo<br><small style="font-size:0.8rem;font-weight:400">Click the robot button →</small></div>
+
+    <!-- Toggle Button -->
+    <div id="chat-toggle" onclick="toggleChat()" title="Chat with Agriculture Bot">🤖</div>
+
+    <!-- Chat Popup -->
+    <div id="chat-popup">
+        <div class="chat-header">
+            <div class="header-icon">🌾</div>
+            <div class="header-info">
+                <div class="title">Agriculture Bot</div>
+                <div class="subtitle"><span class="online-dot"></span>Online · Ready to help</div>
+            </div>
+            <span onclick="toggleChat()" class="close-btn">✖</span>
+        </div>
+
+        <div id="chat-box" class="chat-box"></div>
+
+        <div class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Ask about crops, soil, fertilizer..." onkeydown="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" title="Send">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // ── DOM refs ──
+        const popup   = document.getElementById('chat-popup');
+        const toggle  = document.getElementById('chat-toggle');
+        const chatBox = document.getElementById('chat-box');
+        const input   = document.getElementById('user-input');
+
+        // ── State ──
+        let isOpen  = false;
+        let greeted = false;
+        let isBusy  = false;           // prevents double-sends while waiting for API
+        let knowledge = [];            // populated from knowledge.json
+
+        // ── Config ──
+        const API_KEY = "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";            // 🔑 Replace with your OpenRouter API key
+        const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+        const MODEL   = "openai/gpt-4o-mini";   // OpenRouter model string
+
+        const quickReplies = ['Soil pH tips', 'Best fertilizers', 'Pest control', 'Watering schedule'];
+
+        // ── Topic classification ──
+
+        // Basic human conversation — always allowed
+        const conversationPatterns = [
+            /^(hi|hello|hey|howdy|hiya|yo)\b/i,
+            /^good\s*(morning|afternoon|evening|night|day)\b/i,
+            /^(how are you|how r u|how do you do|what's up|whats up|sup)\b/i,
+            /^(thanks|thank you|thx|ty|cheers|appreciate)/i,
+            /^(bye|goodbye|see you|take care|later|cya)\b/i,
+            /^(ok|okay|sure|alright|got it|understood|great|nice|cool|awesome|wow)\b/i,
+            /^(yes|no|yeah|nope|yep|nah)\b/i,
+            /^(who are you|what are you|tell me about yourself|your name)/i,
+            /\b(wish|congrat|happy)\b.*\b(birthday|new year|diwali|christmas|eid|pongal|holi)\b/i
+        ];
+
+        // Agriculture-specific keywords
+        const agricultureKeywords = [
+            "rice","wheat","maize","corn","cotton","sugarcane","groundnut","millets","pulses",
+            "vegetable","fruit","tomato","potato","onion","cabbage","cucumber","banana","mango",
+            "orange","apple","tea","coffee","rubber","coconut","crop","crops","plant","plants",
+            "soil","loamy","sandy","clay","black soil","red soil","laterite","alluvial","fertile",
+            "fertilizer","urea","ammonium","dap","ssp","mop","sop","nitrogen","phosphorus",
+            "potassium","manure","compost","vermicompost","npk","organic",
+            "irrigation","drip","sprinkler","seeds","sowing","harvest","planting","nursery",
+            "mulching","green manure","organic farming","pesticide","herbicide","crop rotation",
+            "farmer","farm","agriculture","agricultural","subsidy","scheme","loan","insurance",
+            "pm-kisan","soil health card","tractor","pest","insect","fungus","blight",
+            "aphid","weevil","bollworm","disease","weed"
+        ];
+
+        // Geography, environment & science — always allowed
+        const geoScienceKeywords = [
+            "temperature","climate","humidity","ph","rainfall","precipitation","drought","flood",
+            "moisture","weather","season","monsoon","geography","country","region","continent",
+            "state","district","location","latitude","longitude","altitude","elevation",
+            "tropical","subtropical","arid","semi-arid","temperate","mediterranean","polar",
+            "biome","ecosystem","forest","desert","mountain","plain","plateau","river","lake",
+            "ocean","sea","wind","atmosphere","greenhouse","carbon","oxygen","ozone","soil type",
+            "water table","groundwater","aquifer","erosion","deforestation","biodiversity",
+            "ecology","environment","pollution","sustainability","india","china","usa","africa",
+            "europe","asia","pacific","atlantic","amazon","himalaya","sahara"
+        ];
+
+        // Blocked — clearly off-scope harmful/irrelevant topics
+        const blockedKeywords = [
+            "hack","exploit","malware","casino","gambling","porn","adult content","sex","weapon","bomb"
+        ];
+
+        function classifyQuery(query) {
+            const q = query.toLowerCase().trim();
+            if (blockedKeywords.some(w => q.includes(w))) return "blocked";
+            if (conversationPatterns.some(p => p.test(q)))  return "allowed";
+            if (geoScienceKeywords.some(w => q.includes(w))) return "allowed";
+            if (agricultureKeywords.some(w => q.includes(w))) return "allowed";
+            // Let AI handle ambiguous short queries instead of hard-blocking
+            return "allowed";
+        }
+
+        // ── Knowledge base lookup (exact substring match on question field) ──
+        function findAnswerFromKnowledge(query) {
+            const q = query.toLowerCase();
+            for (const item of knowledge) {
+                if (item.question && q.includes(item.question.toLowerCase())) {
+                    return item.answer;
+                }
+            }
+            return null;
+        }
+
+        // ── Load knowledge.json (graceful fail if missing) ──
+        fetch("knowledge.json")
+            .then(r => r.json())
+            .then(data => { knowledge = data; console.log(`✅ Loaded ${data.length} knowledge entries`); })
+            .catch(() => console.warn("⚠️ knowledge.json not found — skipping local KB"));
+
+        // ── UI helpers ──
+        function toggleChat() {
+            isOpen = !isOpen;
+            popup.classList.toggle('chat-visible', isOpen);
+            toggle.classList.toggle('open', isOpen);
+            if (isOpen && !greeted) {
+                greeted = true;
+                setTimeout(() => {
+                    addBot("👋 Hello, farmer! I'm your Agriculture Assistant. Ask me anything about crops, soil, pests, or farming tips!", true);
+                }, 350);
+            }
+            if (isOpen) setTimeout(() => input.focus(), 400);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function addUser(text) {
+            const el = document.createElement('div');
+            el.className = 'message user';
+            el.innerHTML = `<span class="label">You</span><div class="bubble">${escapeHTML(text)}</div>`;
+            chatBox.appendChild(el);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function addBot(text, showQuick = false) {
+            const el = document.createElement('div');
+            el.className = 'message bot';
+            // Allow simple line breaks from API responses
+            el.innerHTML = `<span class="label">🌾 AgriBot</span><div class="bubble">${escapeHTML(text).replace(/\n/g,'<br>')}</div>`;
+            chatBox.appendChild(el);
+            if (showQuick) {
+                const qr = document.createElement('div');
+                qr.className = 'quick-replies';
+                quickReplies.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-reply';
+                    btn.textContent = q;
+                    btn.onclick = () => { if (!isBusy) { input.value = q; sendMessage(); } };
+                    qr.appendChild(btn);
+                });
+                chatBox.appendChild(qr);
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showTyping() {
+            const el = document.createElement('div');
+            el.className = 'message bot typing';
+            el.id = 'typing-indicator';
+            el.innerHTML = `<span class="label">🌾 AgriBot</span><div class="bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+            chatBox.appendChild(el);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typing-indicator');
+            if (t) t.remove();
+        }
+
+        function setInputBusy(busy) {
+            isBusy = busy;
+            input.disabled = busy;
+            document.querySelector('.chat-input-area button').disabled = busy;
+        }
+
+        // ── Instant local replies for greetings (no API needed) ──
+        const greetingReplies = [
+            { pattern: /^(hi|hello|hey|howdy|hiya|yo)\b/i,                              reply: "👋 Hello! I'm AgriBot, your agriculture & environment assistant. How can I help you today?" },
+            { pattern: /^good\s*morning\b/i,                                             reply: "🌅 Good morning! Hope your fields are flourishing. What can I help you with?" },
+            { pattern: /^good\s*(afternoon|evening)\b/i,                                 reply: "🌿 Good day! Ready to answer your farming, climate, or geography questions." },
+            { pattern: /^good\s*night\b/i,                                               reply: "🌙 Good night! Rest well. Come back anytime with your questions." },
+            { pattern: /^(how are you|how r u|how do you do|what's up|whats up|sup)\b/i, reply: "😊 I'm doing great and ready to help! What's on your mind?" },
+            { pattern: /^(thanks|thank you|thx|ty|cheers|appreciate)/i,                   reply: "🙏 You're welcome! Feel free to ask anything else." },
+            { pattern: /^(bye|goodbye|see you|take care|later|cya)\b/i,                   reply: "👋 Goodbye! Happy farming and stay safe!" },
+            { pattern: /^(who are you|what are you|your name|about you)/i,                reply: "🤖 I'm AgriBot — your smart assistant for agriculture, geography, climate, and more. Ask me anything!" },
+        ];
+
+        function getGreetingReply(text) {
+            for (const g of greetingReplies) {
+                if (g.pattern.test(text.trim())) return g.reply;
+            }
+            return null;
+        }
+
+        // ── OpenRouter API call ──
+        async function fetchFromOpenRouter(message) {
+            const systemPrompt = `You are AgriBot, a friendly and knowledgeable assistant. You help with:
+1. Agriculture: crops, soil, fertilizers, pests, irrigation, harvesting, farming schemes (PM-KISAN, Soil Health Card, etc.)
+2. Geography & environment: temperature, climate, humidity, pH levels, rainfall, seasons, soil types by country or region
+3. General conversation: greetings, thanks, farewells, questions about yourself
+
+Respond warmly and naturally. For geography and climate questions, give accurate factual answers and relate them to farming where useful. Keep answers concise (2-4 sentences max). Use plain text only — no markdown, no bullet symbols.
+
+Politely decline only if a question is clearly unrelated (e.g., movies, coding, sports, gambling).`;
+
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Agriculture Chatbot"
+                },
+                body: JSON.stringify({
+                    model: MODEL,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: message }
+                    ],
+                    temperature: 0.4,
+                    max_tokens: 220
+                })
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err?.error?.message || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+        }
+
+        // ── Main send handler (4-tier: blocked → greeting → KB → API) ──
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text || isBusy) return;
+
+            addUser(text);
+            input.value = '';
+            setInputBusy(true);
+
+            // Tier 1 – Hard block harmful/irrelevant topics instantly
+            if (classifyQuery(text) === "blocked") {
+                addBot("🚫 Sorry, that topic is outside what I can help with. Try asking about crops, climate, geography, or farming!");
+                setInputBusy(false);
+                return;
+            }
+
+            // Tier 2 – Instant greeting reply (no delay, no API cost)
+            const greetReply = getGreetingReply(text);
+            if (greetReply) {
+                addBot(greetReply);
+                setInputBusy(false);
+                return;
+            }
+
+            showTyping();
+
+            // Tier 3 – Local knowledge base (instant, no API cost)
+            const kbAnswer = findAnswerFromKnowledge(text);
+            if (kbAnswer) {
+                removeTyping();
+                addBot(kbAnswer);
+                setInputBusy(false);
+                return;
+            }
+
+            // Tier 4 – OpenRouter AI (dynamic answer for everything else)
+            if (!API_KEY) {
+                removeTyping();
+                addBot("⚠️ No API key configured. Please add your OpenRouter API key in the script to enable AI-powered answers.");
+                setInputBusy(false);
+                return;
+            }
+
+            try {
+                const answer = await fetchFromOpenRouter(text);
+                removeTyping();
+                addBot(answer);
+            } catch (err) {
+                removeTyping();
+                addBot(`⚠️ Error reaching AI: ${err.message}. Please try again shortly.`);
+                console.error("OpenRouter error:", err);
+            } finally {
+                setInputBusy(false);
+                input.focus();
+            }
+        }
+    </script>
+</body>
+</html>

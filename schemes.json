@@ -1,0 +1,184 @@
+[
+  {
+    "title": "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+    "description": "Direct income support to farmers.",
+    "link": "https://pmkisan.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+    "description": "Crop insurance against natural disasters.",
+    "link": "https://pmfby.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Kisan Credit Card (KCC)",
+    "description": "Subsidised credit for agricultural needs.",
+    "link": "https://www.rbi.org.in/scripts/BS_KisanCredit.aspx",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "PM-KUSUM Scheme",
+    "description": "Solar-powered irrigation and energy generation support.",
+    "link": "https://pmkusum.mnre.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Agriculture Infrastructure Fund (AIF)",
+    "description": "Loans and subsidies for rural agri-infrastructure.",
+    "link": "https://agriinfra.dac.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Formation & Promotion of 10,000 FPOs",
+    "description": "Support for Farmer Producer Organisations.",
+    "link": "https://fpo.dac.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "National Beekeeping & Honey Mission (NBHM)",
+    "description": "Mission to uplift beekeeping & honey value chain.",
+    "link": "https://www.nbhm.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Soil Health Card Scheme",
+    "description": "Soil testing and fertilizer guidance.",
+    "link": "https://soilhealth.dac.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Paramparagat Krishi Vikas Yojana (PKVY)",
+    "description": "Organic farming cluster support.",
+    "link": "https://pkvy.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Pradhan Mantri Krishi Sinchai Yojana (PMKSY)",
+    "description": "Better irrigation facilities.",
+    "link": "https://pmksy.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "National Agriculture Market (e-NAM)",
+    "description": "Online marketplace for agricultural produce.",
+    "link": "https://enam.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Rashtriya Krishi Vikas Yojana (RKVY)",
+    "description": "State-level agriculture project grants.",
+    "link": "https://rkvy.nic.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Market Intervention & Price Support Scheme",
+    "description": "Price stabilization for farmers.",
+    "link": "https://agricoop.nic.in/MIS",
+    "status": "Active",
+    "new": false
+  }, 
+  {
+    "title": "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+    "description": "Direct income support to farmers.",
+    "link": "https://pmkisan.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+    "description": "Crop insurance against natural disasters.",
+    "link": "https://pmfby.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Kisan Credit Card (KCC)",
+    "description": "Subsidised credit for agricultural needs.",
+    "link": "https://www.rbi.org.in/scripts/BS_KisanCredit.aspx",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "PM-KUSUM Scheme",
+    "description": "Solar-powered irrigation and energy generation support.",
+    "link": "https://pmkusum.mnre.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Agriculture Infrastructure Fund (AIF)",
+    "description": "Loans and subsidies for rural agri-infrastructure.",
+    "link": "https://agriinfra.dac.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Formation & Promotion of 10,000 FPOs",
+    "description": "Support for Farmer Producer Organisations.",
+    "link": "https://fpo.dac.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "National Beekeeping & Honey Mission (NBHM)",
+    "description": "Mission to uplift beekeeping & honey value chain.",
+    "link": "https://www.nbhm.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Soil Health Card Scheme",
+    "description": "Soil testing and fertilizer guidance.",
+    "link": "https://soilhealth.dac.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Paramparagat Krishi Vikas Yojana (PKVY)",
+    "description": "Organic farming cluster support.",
+    "link": "https://pkvy.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Pradhan Mantri Krishi Sinchai Yojana (PMKSY)",
+    "description": "Better irrigation facilities.",
+    "link": "https://pmksy.gov.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "National Agriculture Market (e-NAM)",
+    "description": "Online marketplace for agricultural produce.",
+    "link": "https://enam.gov.in",
+    "status": "Active",
+    "new": true
+  },
+  {
+    "title": "Rashtriya Krishi Vikas Yojana (RKVY)",
+    "description": "State-level agriculture project grants.",
+    "link": "https://rkvy.nic.in",
+    "status": "Active",
+    "new": false
+  },
+  {
+    "title": "Market Intervention & Price Support Scheme",
+    "description": "Price stabilization for farmers.",
+    "link": "https://agricoop.nic.in/MIS",
+    "status": "Active",
+    "new": false
+  }
+]
