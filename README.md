@@ -4,6 +4,12 @@ AI-Based Real-Time Crop Risk Prediction System
 
 The AI-Based Real-Time Crop Risk Prediction System is a smart agriculture web application designed to help farmers make informed decisions using Artificial Intelligence and real-time environmental data. The system predicts crop risk levels by analyzing weather conditions, soil parameters, and historical agricultural data to reduce crop loss and improve farming productivity.
 
+🏗️ System Architecture
+
+<p align="center">
+  <img src="images/<img width="1440" height="1720" alt="system architecture" src="https://github.com/user-attachments/assets/92dac81b-83ec-4d76-a71b-00862760baea" />
+" width="400">
+</p>
 This project aims to support sustainable farming practices through an easy-to-use and multilingual platform with real-time insights and guidance.
 
 🚀 Features
