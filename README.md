@@ -11,17 +11,27 @@ The AI-Based Real-Time Crop Risk Prediction System is a smart agriculture web ap
 This project aims to support sustainable farming practices through an easy-to-use and multilingual platform with real-time insights and guidance.
 
 🚀 Features
+
 ✅ Real-time crop risk prediction using Machine Learning
+
 🌦️ Live weather analysis using OpenWeather API
+
 🌱 Soil and environmental parameter evaluation
+
 🌐 Multilingual support (English & Tamil)
+
 📊 Interactive dashboard with charts and notifications
+
 🏛️ Government schemes and agricultural support information
+
 📦 Live stock availability updates
+
 📚 Beginner-friendly cultivation guidance
+
 📱 Responsive and user-friendly interface
 
 🛠️ Tech Stack
+
 Frontend
 HTML5
 CSS3
@@ -32,6 +42,7 @@ Python
 Flask
 
 Machine Learning
+
 Scikit-learn
 Pandas
 NumPy
@@ -39,6 +50,7 @@ APIs & Tools
 OpenWeather API
 
 ⚙️ System Workflow
+
 Farmer accesses the web application
 System fetches real-time weather data
 User selects crop and location
@@ -58,6 +70,7 @@ Risk Levels
 🔴 High Risk
 
 🎯 Project Objectives
+
 Reduce crop loss through early risk prediction
 Improve agricultural decision-making
 Provide real-time farming assistance
@@ -65,6 +78,7 @@ Increase awareness of government agricultural schemes
 Support beginner and small-scale farmers
 
 📂 Project Structure
+
 AI-Crop-Risk-Prediction/
 │
 ├── static/              # CSS, JS, Images
@@ -77,6 +91,7 @@ AI-Crop-Risk-Prediction/
 └── .gitignore
 
 ▶️ Installation & Setup
+
 1️⃣ Clone the Repository
 git clone https://github.com/your-username/AI-Crop-Risk-Prediction.git
 cd AI-Crop-Risk-Prediction
@@ -87,12 +102,15 @@ Windows
 venv\Scripts\activate
 Linux / Mac
 source venv/bin/activate
+
 4️⃣ Install Dependencies
+
 pip install -r requirements.txt
 5️⃣ Run the Application
 python app.py
 
 📊 Future Enhancements
+
 Mobile application support
 AI-based fertilizer recommendation
 Crop disease detection using Deep Learning
@@ -100,6 +118,7 @@ IoT sensor integration
 SMS alert system for farmers
 
 💛Contribution
+
 Contributions and suggestions are welcome. Feel free to fork the repository and submit pull requests.
 
 📜 License
