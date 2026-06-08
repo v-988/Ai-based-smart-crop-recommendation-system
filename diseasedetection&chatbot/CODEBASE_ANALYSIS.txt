@@ -1,0 +1,1286 @@
+================================================================================
+                    PLANT AI - COMPLETE CODEBASE ANALYSIS
+                Plant Disease Detection & Farmer Chatbot
+================================================================================
+
+Document Created: March 3, 2026
+Version: 1.0.0
+Total Files Analyzed: 50+ files across frontend and backend
+
+================================================================================
+                            TABLE OF CONTENTS
+================================================================================
+
+1. PROJECT OVERVIEW
+2. ARCHITECTURE & TECHNOLOGY STACK
+3. BACKEND ANALYSIS
+   3.1 Core Application (main.py)
+   3.2 Configuration (config/)
+   3.3 Data Models (models/)
+   3.4 API Routers (routers/)
+   3.5 Services (services/)
+   3.6 Utilities (utils/)
+4. FRONTEND ANALYSIS
+   4.1 App Structure (app/)
+   4.2 Components (components/)
+   4.3 Hooks (hooks/)
+   4.4 State Management (store/)
+   4.5 API Client (services/)
+   4.6 Type Definitions (types/)
+5. DEPLOYMENT CONFIGURATION
+6. DEPENDENCIES & PACKAGES
+7. SUMMARY & KEY FEATURES
+
+================================================================================
+                         1. PROJECT OVERVIEW
+================================================================================
+
+WHAT IS PLANT AI?
+-----------------
+Plant AI is a comprehensive, production-ready web application that combines 
+AI-powered plant disease detection with an intelligent agricultural chatbot. 
+The application is designed to help farmers identify plant diseases from 
+images and get expert farming advice through a conversational AI interface.
+
+KEY FEATURES:
+- AI Disease Detection: Upload plant images for instant disease identification
+  using state-of-the-art computer vision models (MobileNetV2)
+- Smart Chatbot: Get expert farming advice from an AI assistant powered by 
+  large language models (Mistral AI via OpenRouter)
+- Voice Support: Speech-to-text and text-to-speech capabilities for hands-free
+  operation using Google Speech Recognition and Google TTS
+- Multilingual: Full support for English and Tamil (தமிழ்)
+- Real-time Streaming: Responses stream in real-time using Server-Sent Events
+- Responsive Design: Works on desktop, tablet, and mobile devices
+- Dark Mode: Theme switching support
+
+TARGET USERS:
+- Farmers who need quick plant disease diagnosis
+- Agricultural extension workers
+- Home gardeners
+- Agricultural students and researchers
+
+================================================================================
+                    2. ARCHITECTURE & TECHNOLOGY STACK
+================================================================================
+
+SYSTEM ARCHITECTURE:
+-------------------
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND                                │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
+│  │   Next.js   │  │  React 18   │  │     Tailwind CSS       │ │
+│  │  App Router │  │  TypeScript │  │    shadcn/ui + Magic UI│ │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ REST API + SSE
+┌───────────────────────────▼─────────────────────────────────────┐
+│                         BACKEND                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
+│  │   FastAPI   │  │   Python    │  │      Async I/O          │ │
+│  │    REST     │  │   3.11+     │  │    Server-Sent Events   │ │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+┌───────────────────────────▼─────────────────────────────────────┐
+│                      AI SERVICES                                │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐ │
+│  │ HuggingFace │  │  OpenRouter │  │      Google TTS         │ │
+│  │ MobileNetV2 │  │  Mistral AI │  │   Speech Recognition    │ │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+
+FRONTEND TECHNOLOGY STACK:
+-------------------------
+- Framework: Next.js 16.1.6 with App Router
+- UI Library: React 18.2.0 with TypeScript 5.3
+- Styling: Tailwind CSS 3.4.1 + tailwindcss-animate
+- UI Components: Radix UI primitives + custom shadcn/ui components
+- Animations: Framer Motion 11.0.3
+- State Management: Zustand 4.5.0
+- Data Fetching: TanStack React Query 5.17.19
+- Icons: Lucide React 0.317.0
+- Theme: next-themes 0.4.6
+- Notifications: Sonner 1.7.4
+
+BACKEND TECHNOLOGY STACK:
+------------------------
+- Framework: FastAPI 0.109.0 (async Python web framework)
+- Runtime: Python 3.11+
+- ASGI Server: Uvicorn 0.27.0
+- HTTP Client: httpx 0.26.0, aiohttp 3.9.1
+- AI/ML: OpenAI client 1.12.0 (for OpenRouter API)
+- Speech: gTTS 2.5.0, SpeechRecognition 3.10.1, pydub 0.25.1
+- Language Detection: langdetect 1.0.9
+- Image Processing: Pillow 10.2.0
+- Validation: Pydantic 2.5.3, pydantic-settings 2.1.0
+- Logging: Loguru 0.7.2
+- Streaming: sse-starlette 2.0.0
+- Testing: pytest 7.4.4, pytest-asyncio 0.23.3
+
+================================================================================
+                         3. BACKEND ANALYSIS
+================================================================================
+
+3.1 CORE APPLICATION (backend/main.py)
+--------------------------------------
+FILE: main.py (211 lines)
+PURPOSE: Main FastAPI application entry point
+
+FUNCTIONALITY:
+- Creates and configures the FastAPI application instance
+- Sets up application lifespan management (startup/shutdown events)
+- Configures CORS middleware for cross-origin requests
+- Registers all API routers (detect, chat, voice)
+- Implements exception handlers for validation errors
+- Provides health check and API status endpoints
+
+KEY COMPONENTS:
+1. Lifespan Manager (asynccontextmanager):
+   - On startup: Logs app info, creates temp directories, validates API keys
+   - On shutdown: Cleans up temp files, logs completion
+
+2. CORS Middleware:
+   - Allows configurable origins from environment
+   - Supports credentials, all methods, and all headers
+   - Exposes X-Session-ID header for session tracking
+
+3. Exception Handlers:
+   - RequestValidationError: Returns 422 with detailed validation errors
+
+4. Endpoints:
+   - GET /health: Health check returning status, version, timestamp
+   - GET /api/v1/status: Detailed API status with feature availability
+
+IMPLEMENTATION DETAILS:
+```python
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    os.makedirs(settings.TEMP_AUDIO_DIR, exist_ok=True)
+    yield
+    # Shutdown logic
+    cleanup_temp_files(settings.TEMP_AUDIO_DIR)
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+```
+
+--------------------------------------------------------------------------------
+
+3.2 CONFIGURATION (backend/config/)
+-----------------------------------
+FILE: settings.py (68 lines)
+PURPOSE: Centralized configuration using Pydantic Settings
+
+FUNCTIONALITY:
+- Defines all configuration parameters as typed class attributes
+- Loads values from environment variables and .env file
+- Uses @lru_cache for efficient settings access
+- Creates necessary directories on initialization
+
+CONFIGURATION PARAMETERS:
+1. API Information:
+   - APP_NAME: Application display name
+   - APP_VERSION: Current version (1.0.0)
+   - APP_DESCRIPTION: API description
+   - DEBUG: Debug mode toggle
+
+2. Server Configuration:
+   - HOST: Server bind address (0.0.0.0)
+   - PORT: Server port (8000)
+   - CORS_ORIGINS: Comma-separated allowed origins
+
+3. HuggingFace Configuration:
+   - HUGGINGFACE_API_KEY: API token for inference
+   - HUGGINGFACE_MODEL_URL: Model endpoint URL (MobileNetV2 plant disease)
+
+4. OpenRouter Configuration:
+   - OPENROUTER_API_KEY: API key for LLM access
+   - OPENROUTER_MODEL: Model identifier (mistral-7b-instruct)
+   - OPENROUTER_BASE_URL: API base URL
+
+5. Chat Configuration:
+   - MAX_CHAT_HISTORY: Messages to retain (10)
+   - MAX_TOKENS: Maximum response tokens (500)
+   - TEMPERATURE: LLM creativity (0.3)
+   - MAX_CONTINUATION_LOOPS: Auto-continue attempts (4)
+
+6. File Upload:
+   - MAX_IMAGE_SIZE: 10MB limit
+   - ALLOWED_IMAGE_TYPES: JPEG, PNG, WebP, GIF
+
+7. Voice:
+   - TEMP_AUDIO_DIR: Temporary audio file storage
+
+8. Logging:
+   - LOG_LEVEL: Loguru log level (INFO)
+
+--------------------------------------------------------------------------------
+
+3.3 DATA MODELS (backend/models/)
+---------------------------------
+FILE: schemas.py (125 lines)
+PURPOSE: Pydantic models for request/response validation
+
+MODELS DEFINED:
+
+1. LanguageEnum (str, Enum):
+   - ENGLISH = "English"
+   - TAMIL = "Tamil"
+   - Used for language selection throughout the app
+
+2. DiseaseDetectionResponse:
+   - disease: str - Detected disease name
+   - confidence: float - Confidence score (0-1)
+   - recommendations: Optional[List[str]] - Treatment recommendations
+   - timestamp: datetime - Detection timestamp (auto-generated)
+
+3. ChatRequest:
+   - message: str - User message (1-2000 chars)
+   - disease_context: Optional[str] - Detected disease for context
+   - language: Optional[LanguageEnum] - Preferred response language
+
+4. ChatResponse:
+   - response: str - AI response text
+   - language: LanguageEnum - Response language
+   - timestamp: datetime - Response timestamp
+
+5. VoiceOutputRequest:
+   - text: str - Text to convert (1-5000 chars)
+   - language: LanguageEnum - Voice language (default: English)
+
+6. ChatMessage:
+   - role: str - "user" or "assistant"
+   - content: str - Message content
+
+7. HealthCheckResponse:
+   - status: str - Health status
+   - version: str - API version
+   - timestamp: datetime
+
+8. ErrorResponse:
+   - error: str - Error type
+   - message: str - Error message
+   - details: Optional[str] - Additional details
+
+--------------------------------------------------------------------------------
+
+3.4 API ROUTERS (backend/routers/)
+----------------------------------
+
+FILE: detect.py (143 lines)
+PREFIX: /api/v1/detect
+PURPOSE: Plant disease detection endpoints
+
+ENDPOINTS:
+
+1. POST /detect
+   - Description: Detect plant disease from uploaded image
+   - Input: UploadFile (image)
+   - Validation: File type, file size (10MB max)
+   - Process: 
+     a. Validate image type against allowed types
+     b. Read image bytes
+     c. Validate file size
+     d. Call disease_service.detect_disease()
+   - Output: DiseaseDetectionResponse with disease, confidence, recommendations
+
+2. POST /detect/all
+   - Description: Get top-k disease predictions
+   - Input: UploadFile (image), top_k query param (default 5)
+   - Output: List of predictions with disease, confidence, raw_label
+
+IMPLEMENTATION FLOW:
+```python
+async def detect_disease(image: UploadFile):
+    validate_image_type(image.content_type, settings.ALLOWED_IMAGE_TYPES)
+    image_bytes = await image.read()
+    # Size validation
+    disease, confidence, recommendations = await disease_service.detect_disease(image_bytes)
+    return DiseaseDetectionResponse(...)
+```
+
+--------------------------------------------------------------------------------
+
+FILE: chat.py (177 lines)
+PREFIX: /api/v1/chat
+PURPOSE: AI chatbot endpoints with streaming support
+
+ENDPOINTS:
+
+1. POST /chat
+   - Description: Send chat message, get AI response
+   - Input: ChatRequest body, X-Session-ID header (optional)
+   - Process:
+     a. Generate session ID if not provided
+     b. Call llm_service.chat() with message, context, language
+     c. Detect response language
+   - Output: ChatResponse with response, language, timestamp
+
+2. POST /chat/stream
+   - Description: Stream chat response in real-time using SSE
+   - Input: ChatRequest body, X-Session-ID header
+   - Process:
+     a. Create async generator
+     b. Stream chunks via llm_service.chat_stream()
+     c. Format as Server-Sent Events
+   - Output: StreamingResponse with text/event-stream media type
+   - Event Format: data: {"content": "chunk", "done": false}
+
+3. DELETE /chat/history
+   - Description: Clear chat history for a session
+   - Input: X-Session-ID header (required)
+   - Process: llm_service.clear_session(session_id)
+   - Output: Success confirmation
+
+4. GET /chat/languages
+   - Description: Get supported chat languages
+   - Output: List with code, name, native name for each language
+
+SSE STREAMING IMPLEMENTATION:
+```python
+async def generate():
+    async for chunk in llm_service.chat_stream(...):
+        data = json.dumps({"content": chunk, "done": False})
+        yield f"data: {data}\n\n"
+    yield f"data: {json.dumps({'done': True})}\n\n"
+
+return StreamingResponse(generate(), media_type="text/event-stream")
+```
+
+--------------------------------------------------------------------------------
+
+FILE: voice.py (229 lines)
+PREFIX: /api/v1/voice
+PURPOSE: Speech-to-text and text-to-speech endpoints
+
+ENDPOINTS:
+
+1. POST /voice/transcribe
+   - Description: Convert speech audio to text
+   - Input: UploadFile (audio), language query param (optional)
+   - Supported Formats: WAV, MP3, WebM, OGG
+   - Size Limit: 50MB
+   - Process:
+     a. Read audio bytes
+     b. Call speech_service.speech_to_text()
+     c. Auto-detect language if not specified
+   - Output: {text, language, language_code}
+
+2. POST /voice/synthesize
+   - Description: Convert text to speech audio
+   - Input: VoiceOutputRequest (text, language)
+   - Process:
+     a. Validate text not empty
+     b. Call speech_service.text_to_speech()
+   - Output: Response with audio/mpeg content
+
+3. POST /voice/synthesize/stream
+   - Description: Stream TTS audio response
+   - Input: VoiceOutputRequest
+   - Output: StreamingResponse with audio/mpeg
+
+--------------------------------------------------------------------------------
+
+3.5 SERVICES (backend/services/)
+--------------------------------
+
+FILE: disease_service.py (238 lines)
+CLASS: DiseaseDetectionService
+PURPOSE: Plant disease identification using HuggingFace Inference API
+
+COMPONENTS:
+
+1. Initialization:
+   - Configures HuggingFace API URL and headers
+   - Detects demo mode if API key not configured
+   - Loads treatment recommendations database
+
+2. Treatment Database:
+   - Pre-defined recommendations for common diseases:
+     * late_blight: 5 recommendations
+     * early_blight: 5 recommendations
+     * powdery_mildew: 5 recommendations
+     * leaf_spot: 5 recommendations
+     * bacterial_spot: 5 recommendations
+     * healthy: 5 maintenance recommendations
+     * default: 5 general recommendations
+
+3. Methods:
+
+   detect_disease(image_bytes) -> Tuple[str, float, List[str]]:
+   - Sends image to HuggingFace inference API
+   - Parses response to extract top prediction
+   - Formats disease name for readability
+   - Retrieves relevant recommendations
+   - Returns: (disease_name, confidence, recommendations)
+   - Demo Mode: Returns random demo disease if API key not set
+
+   _get_recommendations(disease_name) -> List[str]:
+   - Searches treatment database by keyword matching
+   - Returns appropriate recommendations or defaults
+
+   get_all_predictions(image_bytes, top_k) -> List[dict]:
+   - Returns top-k predictions with confidence scores
+   - Includes raw label and formatted disease name
+
+API INTEGRATION:
+```python
+async with httpx.AsyncClient(timeout=30.0) as client:
+    response = await client.post(
+        self.api_url,
+        headers=self.headers,
+        content=image_bytes
+    )
+    results = response.json()
+    # Parse label and score from response
+```
+
+--------------------------------------------------------------------------------
+
+FILE: llm_service.py (479 lines)
+CLASS: LLMService
+PURPOSE: AI chatbot using OpenRouter API with Mistral AI
+
+COMPONENTS:
+
+1. ChatMemory Class:
+   - In-memory chat history manager
+   - Methods:
+     * add_message(session_id, role, content): Add message to history
+     * get_history(session_id): Get formatted history for API
+     * get_context_string(session_id): Get history as string
+     * clear_session(session_id): Remove session history
+   - Max messages: 10 (configurable)
+
+2. LLMService Initialization:
+   - Configures OpenRouter API access
+   - Sets up headers with auth and metadata
+   - Initializes ChatMemory
+   - Detects demo mode if API key not configured
+
+3. System Prompts:
+   - English Prompt: Expert agricultural advisor rules
+     * Reply only in specified language
+     * Concise responses (6-10 lines)
+     * No markdown formatting
+     * Complete sentences
+     * Focus on organic solutions
+     * Include safety precautions
+
+   - Tamil Prompt: Same rules in Tamil language
+
+4. Methods:
+
+   chat(message, session_id, disease_context, language) -> str:
+   - Sanitizes input
+   - Auto-detects language if not specified
+   - Builds context with disease info and chat history
+   - Calls _get_complete_response() with smart continuation
+   - Stores message in memory
+   - Returns cleaned response
+
+   chat_stream(message, session_id, disease_context, language) -> AsyncGenerator:
+   - Same preparation as chat()
+   - Streams response chunks via SSE
+   - Updates memory when complete
+   - Yields content chunks for real-time display
+
+   _get_complete_response(prompt, language) -> str:
+   - Makes API call to OpenRouter
+   - Implements smart continuation logic:
+     * Checks if response ends properly (sentence complete)
+     * If not, requests continuation up to 4 times
+     * Avoids repetition in continuations
+   - Returns cleaned final response
+
+   _detect_language(text) -> LanguageEnum:
+   - Uses langdetect library
+   - Returns TAMIL if "ta" detected, else ENGLISH
+
+   _get_demo_response(message, disease_context, language) -> str:
+   - Returns pre-defined demo responses
+   - Different responses for English and Tamil
+   - Includes setup instructions
+
+OPENROUTER API CALL:
+```python
+payload = {
+    "model": self.model,
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ],
+    "max_tokens": self.max_tokens,
+    "temperature": self.temperature,
+    "stream": True  # For streaming
+}
+```
+
+--------------------------------------------------------------------------------
+
+FILE: speech_service.py (222 lines)
+CLASS: SpeechService
+PURPOSE: Speech-to-text (STT) and text-to-speech (TTS) processing
+
+COMPONENTS:
+
+1. Initialization:
+   - Configures temp directory for audio files
+   - Initializes SpeechRecognition recognizer
+   - Sets up language code mappings:
+     * TTS: English -> "en", Tamil -> "ta"
+     * STT: English -> "en-US", Tamil -> "ta-IN"
+
+2. Methods:
+
+   speech_to_text(audio_bytes, language) -> Tuple[str, LanguageEnum]:
+   - Saves uploaded audio to temp file
+   - Converts to WAV format using pydub AudioSegment
+   - Uses SpeechRecognition with Google Speech API
+   - If language not specified:
+     * Tries Tamil first, then English
+     * Returns detected language
+   - Cleans up temp files
+   - Returns: (transcribed_text, detected_language)
+
+   text_to_speech(text, language) -> bytes:
+   - Uses gTTS (Google Text-to-Speech)
+   - Generates MP3 audio
+   - Saves to temp file, reads bytes, returns
+   - Cleans up temp file
+
+   text_to_speech_stream(text, language) -> io.BytesIO:
+   - Wrapper that returns BytesIO stream for streaming responses
+
+   detect_language_from_text(text) -> LanguageEnum:
+   - Uses langdetect library
+   - Detects Tamil or defaults to English
+
+AUDIO PROCESSING FLOW:
+```python
+# STT
+audio = AudioSegment.from_file(temp_input)
+audio.export(temp_wav, format="wav")
+with sr.AudioFile(temp_wav) as source:
+    audio_data = self.recognizer.record(source)
+text = self.recognizer.recognize_google(audio_data, language="en-US")
+
+# TTS
+tts = gTTS(text=text, lang="en", slow=False)
+tts.save(temp_file)
+```
+
+--------------------------------------------------------------------------------
+
+3.6 UTILITIES (backend/utils/)
+------------------------------
+
+FILE: helpers.py (231 lines)
+PURPOSE: Shared utility functions
+
+FUNCTIONS:
+
+1. clean_markdown_text(text) -> str:
+   - Removes markdown formatting for voice output
+   - Handles: bold, italic, headers, code blocks, links, images, blockquotes
+   - Cleans multiple newlines and spaces
+
+2. generate_session_id() -> str:
+   - Creates UUID string for session tracking
+
+3. generate_temp_filename(extension) -> str:
+   - Creates unique filename with timestamp and UUID
+   - Format: temp_YYYYMMDD_HHMMSS_xxxxxxxx.ext
+
+4. validate_image_type(content_type, allowed_types) -> bool:
+   - Validates MIME type against allowed list
+
+5. truncate_text(text, max_length) -> str:
+   - Truncates with ellipsis if exceeds length
+
+6. format_disease_name(disease_name) -> str:
+   - Converts "Tomato___Late_blight" to "Tomato - Late Blight"
+   - Replaces underscores with spaces
+   - Title cases words
+
+7. is_sentence_complete(text) -> bool:
+   - Checks if text ends with sentence punctuation
+   - Supports: . ! ? । …
+
+8. cleanup_temp_files(directory, max_age_hours) -> int:
+   - Removes temporary files older than specified age
+   - Returns count of deleted files
+
+9. sanitize_input(text) -> str:
+   - Cleans user input for security
+   - Removes excess whitespace
+
+10. get_language_code(language) -> str:
+    - Maps LanguageEnum to language code
+
+--------------------------------------------------------------------------------
+
+FILE: logger.py (67 lines)
+PURPOSE: Logging configuration using Loguru
+
+FUNCTIONALITY:
+- Removes default logger handler
+- Configures console logging with colors
+- In production (DEBUG=false):
+  * Adds daily rotating log file (7 days retention)
+  * Adds error-only log file (30 days retention)
+  * Compresses old logs with gzip
+
+LOG FORMAT:
+```
+Console: <green>{time}</green> | <level>{level}</level> | <cyan>{name}:{function}:{line}</cyan> | <level>{message}</level>
+File: {time} | {level} | {name}:{function}:{line} | {message}
+```
+
+================================================================================
+                         4. FRONTEND ANALYSIS
+================================================================================
+
+4.1 APP STRUCTURE (frontend/app/)
+---------------------------------
+
+FILE: layout.tsx (117 lines)
+PURPOSE: Root layout component for Next.js App Router
+
+FUNCTIONALITY:
+- Configures Inter font with CSS variable
+- Sets up comprehensive SEO metadata:
+  * Title template
+  * Description and keywords
+  * Open Graph tags for social sharing
+  * Twitter card configuration
+  * Favicon and manifest
+- Configures viewport settings
+- Wraps children with Providers, Toaster, TooltipProvider
+
+METADATA CONFIGURATION:
+```typescript
+export const metadata: Metadata = {
+  title: { default: "Plant AI - Plant Disease Detection & Farmer Chatbot", template: "%s | Plant AI" },
+  description: "AI-powered plant disease detection and agricultural chatbot...",
+  keywords: ["plant disease detection", "agriculture AI", "farmer chatbot", ...],
+  openGraph: { type: "website", siteName: "Plant AI", images: [...] },
+  twitter: { card: "summary_large_image" }
+};
+```
+
+--------------------------------------------------------------------------------
+
+FILE: page.tsx (311 lines) - Landing Page
+PURPOSE: Marketing/hero page with feature showcase
+
+SECTIONS:
+1. Hero Section:
+   - Gradient background with particles animation
+   - Badge: "AI-Powered Agriculture"
+   - Main headline with gradient text effect
+   - Description paragraph
+   - CTA buttons: "Start Detecting" and "Learn More"
+   - Animated mockup card preview
+
+2. Stats Section:
+   - Grid of statistics: 50+ Plant Diseases, 95% Accuracy, 2 Languages, 24/7 Available
+   - Animated counters on scroll
+
+3. Features Section:
+   - 4 feature cards with icons and descriptions:
+     * Disease Detection (Scan icon)
+     * Smart Chatbot (MessageSquare icon)
+     * Voice Support (Mic icon)
+     * Multilingual (Globe icon)
+   - Glass morphism card design
+   - Hover animations
+
+4. CTA Section:
+   - Green gradient background
+   - "Ready to Protect Your Crops?" heading
+   - "Get Started Free" button
+
+ANIMATIONS:
+- Framer Motion variants for staggered animations
+- Container and item variants for fade-in/slide-up effects
+- Scale animations on hover
+- Scroll-triggered animations with whileInView
+
+--------------------------------------------------------------------------------
+
+FILE: dashboard/page.tsx (584 lines)
+PURPOSE: Main application dashboard with disease detection and chat
+
+STATE MANAGEMENT:
+- Uses Zustand store for global state
+- Local state for UI: activeTab, uploadedImage, isDetecting, etc.
+- Custom hooks: useVoiceRecorder, useAudioPlayer
+
+COMPONENTS:
+1. Connection Status Alert:
+   - Shows warning if backend not connected
+   - Checks health on mount
+
+2. Tab Navigation:
+   - "Disease Detection" tab
+   - "Chatbot" tab with message count badge
+
+3. Disease Detection Panel:
+   - ImageUpload component for drag-and-drop
+   - "Detect Disease" button with loading state
+   - DiseaseResultCard for showing results
+
+4. Chat Panel:
+   - Message list with auto-scroll
+   - ChatMessage components for each message
+   - ChatInput with voice recording support
+   - Clear history button
+
+5. Side Panel:
+   - Quick Tips card
+   - Last Detection preview (when chatting)
+   - Recent Messages preview (when detecting)
+
+KEY FUNCTIONS:
+- handleImageSelect(file): Sets image and clears previous result
+- handleDetect(): Calls disease API, shows result, adds system message
+- handleSendMessage(content): Streams chat response, updates messages
+- handleVoiceTranscription(blob): Transcribes audio, sends as message
+- handleSpeak(text): Plays TTS audio for message
+- handleClearHistory(): Clears chat history via API
+
+--------------------------------------------------------------------------------
+
+FILE: dashboard/layout.tsx
+PURPOSE: Dashboard layout wrapper with header and footer
+
+FILE: about/page.tsx
+PURPOSE: About page with team info and mission statement
+
+FILE: features/page.tsx
+PURPOSE: Detailed features page with comprehensive feature list
+
+--------------------------------------------------------------------------------
+
+4.2 COMPONENTS (frontend/components/)
+-------------------------------------
+
+FILE: image-upload.tsx (256 lines)
+PURPOSE: Drag-and-drop image upload with preview
+
+PROPS:
+- onUpload: (file: File) => void
+- onRemove: () => void
+- isUploading?: boolean
+- preview?: string | null
+- maxSize?: number (default 10MB)
+- accept?: string (MIME types)
+- disabled?: boolean
+
+FEATURES:
+- Drag and drop zone with visual feedback
+- File input fallback
+- File type and size validation
+- Image preview with remove button
+- Loading overlay during upload
+- Error message display
+- Decorative glow effects
+
+IMPLEMENTATION:
+```typescript
+const handleDrop = (e: React.DragEvent) => {
+  const file = e.dataTransfer.files[0];
+  if (validateFile(file)) {
+    onUpload(file);
+  }
+};
+```
+
+--------------------------------------------------------------------------------
+
+FILE: chat-input.tsx (270 lines)
+PURPOSE: Chat input with text and voice support
+
+PROPS:
+- onSend: (message: string) => void
+- onVoiceMessage?: (audioBlob: Blob) => void
+- isLoading?: boolean
+- disabled?: boolean
+- placeholder?: string
+- language?: Language
+- onLanguageChange?: (language: Language) => void
+
+FEATURES:
+- Multi-line textarea with auto-resize
+- Enter to send, Shift+Enter for new line
+- Voice recording button with waveform indicator
+- Recording duration display
+- Cancel/Stop recording buttons
+- Language toggle button (optional)
+- Loading state handling
+
+VOICE RECORDING FLOW:
+1. User clicks mic button
+2. startRecording() called from useVoiceRecorder
+3. Red recording indicator appears with duration
+4. User stops recording
+5. onRecordingComplete called with Blob
+6. onVoiceMessage(blob) triggers transcription
+
+--------------------------------------------------------------------------------
+
+FILE: chat-message.tsx
+PURPOSE: Individual chat message display
+
+FEATURES:
+- Different styling for user vs assistant
+- Markdown content rendering
+- Audio playback button for TTS
+- Streaming animation for incoming messages
+- Timestamp display
+
+--------------------------------------------------------------------------------
+
+FILE: disease-result.tsx (203 lines)
+PURPOSE: Disease detection result card
+
+PROPS:
+- result: DiseaseResult
+- className?: string
+
+FEATURES:
+- Header bar color based on health status (green for healthy, amber/red for disease)
+- Disease name with gradient text
+- Confidence score with progress bar
+- Confidence level interpretation text
+- Numbered recommendations list with animations
+- Analyzed image thumbnail (if available)
+- Decorative glow effect
+
+CONFIDENCE VISUALIZATION:
+- >= 90%: Green, "High confidence - reliable detection"
+- >= 70%: Amber, "Moderate confidence - consider verification"
+- < 70%: Red, "Low confidence - manual verification recommended"
+
+--------------------------------------------------------------------------------
+
+FILE: header.tsx (198 lines)
+PURPOSE: Navigation header with theme toggle
+
+FEATURES:
+- Sticky header with scroll effect (background blur)
+- Logo with hover animation
+- Desktop navigation with active indicator
+- Theme cycling: light -> dark -> system
+- Mobile hamburger menu
+- "Try Now" CTA button
+
+NAVIGATION ITEMS:
+- Home (/)
+- Dashboard (/dashboard)
+- Features (/features)
+- About (/about)
+
+--------------------------------------------------------------------------------
+
+FILE: footer.tsx
+PURPOSE: Page footer with links and copyright
+
+FILE: animated-background.tsx
+PURPOSE: Hero section background animations
+COMPONENTS: GradientBackground, ParticlesBackground
+
+FILE: providers.tsx
+PURPOSE: React context providers wrapper
+INCLUDES: ThemeProvider, QueryClientProvider
+
+FILE: voice-waveform.tsx
+PURPOSE: Audio waveform visualization component
+
+--------------------------------------------------------------------------------
+
+UI COMPONENTS (components/ui/):
+- avatar.tsx: User/AI avatar display
+- badge.tsx: Status badges (success, warning, etc.)
+- button.tsx: Button variants (default, outline, ghost, gradient, destructive)
+- card.tsx: Card containers with glass variant
+- progress.tsx: Progress bar for confidence display
+- skeleton.tsx: Loading placeholder
+- switch.tsx: Toggle switch
+- textarea.tsx: Multi-line text input
+- toaster.tsx: Toast notifications
+- tooltip.tsx: Hover tooltips
+
+--------------------------------------------------------------------------------
+
+4.3 HOOKS (frontend/hooks/)
+---------------------------
+
+FILE: use-voice-recorder.ts (173 lines)
+PURPOSE: Voice recording functionality
+
+OPTIONS:
+- maxDuration: number (default 60 seconds)
+- onRecordingComplete: (blob: Blob, duration: number) => void
+- onError: (error: string) => void
+
+RETURN VALUE:
+- isRecording: boolean
+- isProcessing: boolean
+- audioBlob: Blob | null
+- duration: number
+- error: string | null
+- startRecording: () => Promise<void>
+- stopRecording: () => void
+- cancelRecording: () => void
+- isSupported: boolean
+
+IMPLEMENTATION:
+- Uses MediaRecorder API
+- Requests microphone with echoCancellation, noiseSuppression, autoGainControl
+- Collects data chunks every second
+- Creates Blob with audio/webm or audio/mp4 MIME type
+- Updates duration every 100ms
+- Auto-stops at maxDuration
+
+--------------------------------------------------------------------------------
+
+FILE: use-audio-player.ts (200 lines)
+PURPOSE: Audio playback functionality
+
+OPTIONS:
+- onEnded: () => void
+- onError: (error: string) => void
+
+RETURN VALUE:
+- isPlaying: boolean
+- isPaused: boolean
+- currentTime: number
+- duration: number
+- volume: number
+- play: (source: string | Blob) => void
+- playAudio: (source: string | Blob) => void (alias)
+- pause: () => void
+- resume: () => void
+- stop: () => void
+- stopAudio: () => void (alias)
+- seek: (time: number) => void
+- setVolume: (volume: number) => void
+
+IMPLEMENTATION:
+- Creates HTMLAudioElement
+- Handles Blob sources via URL.createObjectURL
+- Updates currentTime via requestAnimationFrame
+- Cleans up object URLs on source change
+
+--------------------------------------------------------------------------------
+
+4.4 STATE MANAGEMENT (frontend/store/)
+--------------------------------------
+
+FILE: app-store.ts (102 lines)
+PURPOSE: Zustand store for global application state
+
+STATE SLICES:
+
+1. Theme:
+   - theme: "light" | "dark" | "system"
+   - setTheme: (theme) => void
+
+2. Language:
+   - language: "English" | "Tamil"
+   - setLanguage: (language) => void
+
+3. Session:
+   - sessionId: string (auto-generated)
+   - resetSession: () => void (clears messages and results)
+
+4. Chat Messages:
+   - messages: ChatMessage[]
+   - addMessage: (message) => void
+   - updateMessage: (id, content) => void
+   - updateMessageContent: (id, content, isStreaming) => void
+   - clearMessages: () => void
+
+5. Disease Result:
+   - diseaseResult: DiseaseResult | null
+   - setDiseaseResult: (result) => void
+
+6. Loading States:
+   - isLoading: boolean
+   - setLoading: (value) => void
+   - isDetecting: boolean
+   - setIsDetecting: (value) => void
+   - isChatting: boolean
+   - setIsChatting: (value) => void
+
+PERSISTENCE:
+- Uses localStorage via zustand/middleware persist
+- Persists: theme, language, sessionId
+- Messages are not persisted (cleared on refresh)
+
+SELECTOR HOOKS:
+- useTheme, useLanguage, useMessages, useDiseaseResult, useSessionId
+- useSetTheme, useSetLanguage, useAddMessage, etc.
+
+--------------------------------------------------------------------------------
+
+4.5 API CLIENT (frontend/services/)
+-----------------------------------
+
+FILE: api.ts (338 lines)
+PURPOSE: HTTP client for backend communication
+
+CONFIGURATION:
+- API_BASE_URL from NEXT_PUBLIC_API_URL env var (default: localhost:8000)
+- API_PREFIX: /api/v1
+
+ERROR HANDLING:
+- Custom ApiError class with statusCode, message, details
+- Generic fetchApi wrapper with JSON parsing
+
+API MODULES:
+
+1. diseaseApi:
+   - detect(imageFile, sessionId): POST /detect with FormData
+   - getAllPredictions(imageFile, topK, sessionId): POST /detect/all
+
+2. chatApi:
+   - sendMessage(request, sessionId): POST /chat
+   - streamMessage(request, sessionId, onChunk, onComplete, onError):
+     * POST /chat/stream
+     * Reads SSE stream
+     * Parses JSON data events
+     * Calls callbacks on chunks
+   - clearHistory(sessionId): DELETE /chat/history
+   - getLanguages(): GET /chat/languages
+
+3. voiceApi:
+   - transcribe(audioFile, language): POST /voice/transcribe
+   - synthesize(request): POST /voice/synthesize (returns Blob)
+   - getLanguages(): GET /voice/languages
+
+4. healthApi:
+   - check(): GET /health
+
+STREAMING IMPLEMENTATION:
+```typescript
+const reader = response.body?.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  
+  const text = decoder.decode(value);
+  const lines = text.split("\n");
+  
+  for (const line of lines) {
+    if (line.startsWith("data: ")) {
+      const data = JSON.parse(line.slice(6));
+      if (data.content) onChunk(data.content);
+      if (data.done) onComplete();
+    }
+  }
+}
+```
+
+--------------------------------------------------------------------------------
+
+4.6 TYPE DEFINITIONS (frontend/types/)
+--------------------------------------
+
+FILE: index.ts (283 lines)
+PURPOSE: TypeScript type definitions
+
+CATEGORIES:
+
+1. API Types:
+   - Language: "English" | "Tamil"
+   - DiseaseDetectionResponse
+   - ChatRequest, ChatResponse
+   - TranscriptionResponse
+   - SynthesisRequest
+   - HealthCheckResponse, ApiStatusResponse
+   - ApiError
+
+2. Chat Types:
+   - ChatMessage: id, role, content, timestamp, isStreaming?, audioUrl?
+   - ChatSession: sessionId, messages, diseaseContext, language, dates
+
+3. Disease Detection Types:
+   - DiseaseResult: disease, confidence, recommendations, treatment?, imageUrl?
+   - ImageUploadState: file, preview, isUploading, error
+
+4. Voice Types:
+   - VoiceRecordingState: isRecording, isProcessing, audioBlob, duration, error
+   - VoicePlaybackState: isPlaying, currentTime, duration, audioUrl
+
+5. UI Types:
+   - ToastType: "success" | "error" | "warning" | "info"
+   - Toast: id, type, title, description?, duration?
+   - LoadingState: isLoading, message?
+   - FeatureCard: icon, title, description, gradient
+
+6. AppState:
+   - Combined interface for Zustand store
+   - All state properties and action methods
+
+================================================================================
+                      5. DEPLOYMENT CONFIGURATION
+================================================================================
+
+FRONTEND DEPLOYMENT (Vercel):
+----------------------------
+File: frontend/vercel.json
+Configuration:
+- Framework: Next.js
+- Build Command: npm run build
+- Output Directory: .next
+- Regions: iad1 (US East)
+- Security Headers: X-Content-Type-Options, X-Frame-Options
+
+Environment Variables:
+- NEXT_PUBLIC_API_URL: Backend API URL
+- NEXT_PUBLIC_APP_URL: Frontend URL
+
+BACKEND DEPLOYMENT (Railway):
+----------------------------
+File: backend/railway.toml
+- Builder: nixpacks
+- Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+- Health Check: /health
+- Restart Policy: ON_FAILURE (max 10 retries)
+
+File: backend/Procfile
+- web: uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+
+File: backend/runtime.txt
+- python-3.11.7
+
+Environment Variables (Production):
+- DEBUG=false
+- CORS_ORIGINS=https://your-frontend.vercel.app
+- HUGGINGFACE_API_KEY=your_key
+- OPENROUTER_API_KEY=your_key
+
+================================================================================
+                      6. DEPENDENCIES & PACKAGES
+================================================================================
+
+BACKEND (requirements.txt):
+--------------------------
+Core:
+- fastapi>=0.109.0 - Web framework
+- uvicorn[standard]>=0.27.0 - ASGI server
+- python-multipart>=0.0.6 - Form data parsing
+- python-dotenv>=1.0.0 - Environment loading
+
+HTTP:
+- httpx>=0.26.0 - Async HTTP client
+- aiohttp>=3.9.1 - Async HTTP
+
+AI/ML:
+- openai>=1.12.0 - OpenRouter client
+
+Speech:
+- gtts>=2.5.0 - Google TTS
+- SpeechRecognition>=3.10.1 - STT
+- pydub>=0.25.1 - Audio processing
+
+Utilities:
+- langdetect>=1.0.9 - Language detection
+- pydantic>=2.5.3 - Data validation
+- pydantic-settings>=2.1.0 - Settings management
+- Pillow>=10.2.0 - Image processing
+- loguru>=0.7.2 - Logging
+- sse-starlette==2.0.0 - SSE support
+
+Testing:
+- pytest>=7.4.4
+- pytest-asyncio>=0.23.3
+
+FRONTEND (package.json):
+-----------------------
+Core:
+- next@^16.1.6 - React framework
+- react@^18.2.0 - UI library
+- react-dom@^18.2.0
+
+UI:
+- @radix-ui/* - Accessible UI primitives
+- tailwindcss@^3.4.1 - Utility CSS
+- tailwindcss-animate@^1.0.7
+- framer-motion@^11.0.3 - Animations
+- lucide-react@^0.317.0 - Icons
+- class-variance-authority@^0.7.0 - Variant styling
+- clsx@^2.1.0 - Class names
+- tailwind-merge@^2.2.1 - TW class merging
+
+State & Data:
+- zustand@^4.5.0 - State management
+- @tanstack/react-query@^5.17.19 - Data fetching
+
+Theme:
+- next-themes@^0.4.6 - Theme switching
+
+Notifications:
+- sonner@^1.7.4 - Toast notifications
+
+Dev:
+- typescript@^5.3.3
+- eslint, autoprefixer, postcss
+- jest, @testing-library/*
+
+================================================================================
+                      7. SUMMARY & KEY FEATURES
+================================================================================
+
+PROJECT STATISTICS:
+- Backend: ~1,500 lines of Python code across 12 files
+- Frontend: ~3,000 lines of TypeScript/TSX across 25+ files
+- Total: ~4,500+ lines of production code
+
+UNIQUE FEATURES:
+1. Real-time Streaming: Uses SSE for streaming chat responses
+2. Smart Continuation: LLM responses auto-continue if incomplete
+3. Multilingual NLP: Automatic language detection (Tamil/English)
+4. Voice Interface: Full STT and TTS support
+5. Demo Mode: Works without API keys for testing
+6. Session Management: Persistent chat history per session
+7. Container-Ready: Docker/Railway/Render deployment ready
+
+SECURITY CONSIDERATIONS:
+- Input sanitization in chat messages
+- File type/size validation for uploads
+- CORS configuration for cross-origin requests
+- Environment variables for sensitive keys
+- No credentials in code
+
+SCALABILITY:
+- Async/await throughout for high concurrency
+- Singleton service patterns
+- In-memory session storage (can be extended to Redis)
+- Stateless API design
+
+EXTENSIBILITY:
+- Modular service architecture
+- Pluggable AI model support
+- Additional language support ready
+- Custom disease database extendable
+
+================================================================================
+                           END OF DOCUMENT
+================================================================================
+
+This comprehensive analysis covers all aspects of the Plant AI codebase,
+including architecture, implementation details, and deployment configuration.
+For questions or updates, refer to the source code and README.md.
+

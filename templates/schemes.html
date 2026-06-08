@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Government Schemes for Farmers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-dark:   #1a4d2e;
+      --green-mid:    #2d7a4f;
+      --green-bright: #3cb371;
+      --green-light:  #e8f5ee;
+      --accent:       #f5a623;
+      --text-dark:    #1a2e1f;
+      --text-muted:   #5a7060;
+      --white:        #ffffff;
+      --card-shadow:  0 4px 24px rgba(26, 77, 46, 0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--green-light);
+      min-height: 100vh;
+      color: var(--text-dark);
+    }
+
+    /* ── Top bar matching the portal nav ── */
+    .topbar {
+      background: var(--green-dark);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 56px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .topbar-brand span { font-size: 20px; }
+
+    /* ── Hero header ── */
+    .hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+      padding: 56px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #a8e6c0;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 100px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    .hero h1 em {
+      color: #7de8a4;
+      font-style: normal;
+    }
+
+    .hero p {
+      color: rgba(255,255,255,0.75);
+      font-size: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ── Schemes grid ── */
+    .schemes-wrapper {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 20px 64px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--green-mid);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--green-light);
+      position: relative;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 60px;
+      height: 2px;
+      background: var(--green-bright);
+    }
+
+    /* ── Card ── */
+    .scheme-card {
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+      padding: 28px 28px 24px;
+      border-left: 4px solid var(--green-bright);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scheme-card::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle at top right, rgba(61,179,113,0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .scheme-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(26, 77, 46, 0.15);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .scheme-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .badge-new {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      animation: pulse 2.5s infinite;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.35);
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.06); }
+    }
+
+    .scheme-desc {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .scheme-status {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--green-mid);
+      background: var(--green-light);
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid rgba(45,122,79,0.18);
+    }
+
+    /* ── Button ── */
+    .btn-green {
+      background: var(--green-dark);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.25s ease;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-green::after {
+      content: '↗';
+      font-size: 14px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-green:hover {
+      background: var(--green-mid);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(26,77,46,0.25);
+    }
+
+    .btn-green:hover::after {
+      transform: translate(2px,-2px);
+    }
+
+    .btn-green:active { transform: translateY(0); }
+
+    /* ── Loading / error ── */
+    #schemesContainer:empty::before,
+    .loading {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 15px;
+      padding: 40px;
+    }
+
+    /* ── Footer strip ── */
+    .footer {
+      background: var(--green-dark);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      font-size: 12.5px;
+      padding: 18px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .hero { padding: 40px 16px 48px; }
+      .scheme-card { padding: 20px 18px; }
+      .topbar { padding: 0 16px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top bar matching portal nav -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <span>🌾</span> Welcome Farmers
+    </div>
+    <div>Government Schemes Portal</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">India Agriculture 2026</div>
+    <h1>Government Schemes<br>for <em>Farmers & Agriculture</em></h1>
+    <p>Access official welfare programmes, subsidies, and support initiatives designed to empower Indian farmers.</p>
+  </div>
+
+  <!-- Schemes list -->
+  <div class="schemes-wrapper">
+    <div class="section-label">Active Programmes</div>
+    <div class="section-title">All Schemes</div>
+    <div id="schemesContainer"><p class="loading">Loading schemes…</p></div>
+  </div>
+
+  <div class="footer">© 2026 Government of India · Farmer Welfare Portal</div>
+
+  <script>
+    fetch('schemes.json')
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => {
+        const container = document.getElementById('schemesContainer');
+        container.innerHTML = '';
+        data.forEach(scheme => {
+          const card = document.createElement('div');
+          card.className = 'scheme-card';
+          card.innerHTML = `
+            <div class="card-header">
+              <div class="scheme-title">${scheme.title}</div>
+              ${scheme.new ? '<span class="badge-new">New</span>' : ''}
+            </div>
+            <p class="scheme-desc">${scheme.description}</p>
+            <div class="card-footer">
+              <span class="scheme-status">● ${scheme.status}</span>
+              <button class="btn-green" onclick="window.open('${scheme.link}','_blank')">
+                Official Link
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      })
+      .catch(() => {
+        document.getElementById('schemesContainer').innerHTML =
+          '<p class="loading">Failed to load schemes. Please try again later.</p>';
+      });
+  </script>
+</body>
+</html>

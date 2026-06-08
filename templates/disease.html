@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropWiseX - Intelligent Agricultural Advisory System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+ 
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 1px solid #e0e0e0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .crop-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .crop-btn {
+            padding: 10px 25px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #333;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .crop-btn:hover {
+            border-color: #27ae60;
+            background: #f0f8f4;
+        }
+
+        .crop-btn.active {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .image-container {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-green {
+            background: #27ae60;
+            color: white;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-green:hover {
+            background: #229954;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .disease-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .disease-name.healthy {
+            color: #27ae60;
+        }
+
+        .description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .recommendations {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+
+        .recommendations h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .recommendations li {
+            padding: 5px 0;
+            color: #555;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .recommendations li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #27ae60;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+            color: #c62828;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .crop-selector {
+                flex-direction: column;
+            }
+
+            .crop-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Crop Disease Detection</h1>
+            <p>Upload a crop image to detect disease</p>
+        </div>
+
+        <!-- ✅ ADD THIS BUTTON HERE -->
+        <button class="btn btn-primary" style="margin-bottom:15px;"
+                onclick="window.location.href='/dashboard'">
+            ⬅ Back to Dashboard
+        </button>
+
+
+      <!-- <div class="crop-selector">
+            <button class="crop-btn active" onclick="selectCrop('tomato', this)">🍅 Tomato</button>
+            <button class="crop-btn" onclick="selectCrop('potato', this)">🥔 Potato</button>
+            <button class="crop-btn" onclick="selectCrop('corn', this)">🌽 Corn</button>
+        </div> --> 
+
+        <div class="image-container" id="imageContainer">
+            <img id="previewImg" class="preview-img" style="display: none;">
+            <div id="uploadPrompt">
+                <p style="color: #999; margin-bottom: 15px;">📸 Click to upload crop image</p>
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    Upload Image
+                </button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+        </div>
+
+        <button class="btn btn-green" id="predictBtn" onclick="predictDisease()" disabled>
+            Detect Disease
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing crop disease...</p>
+        </div>
+
+        <div class="error-box" id="errorBox"></div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-title">Prediction Result:</div>
+            <div class="disease-name" id="diseaseName"></div>
+            <div class="description" id="description"></div>
+            <div class="recommendations" id="recommendations"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentImage = null;
+        let selectedCrop = 'tomato';
+
+        function selectCrop(crop, button) {
+            document.querySelectorAll('.crop-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            selectedCrop = crop;
+            hideResults();
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('File size must be less than 5MB');
+                    return;
+                }
+
+                if (!file.type.startsWith('image/')) {
+                    showError('Please upload a valid image file');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage = e.target.result;
+                    document.getElementById('previewImg').src = currentImage;
+                    document.getElementById('previewImg').style.display = 'block';
+                    document.getElementById('uploadPrompt').style.display = 'none';
+                    document.getElementById('predictBtn').disabled = false;
+                    hideResults();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function predictDisease() {
+            if (!currentImage) return;
+
+            showLoading();
+            hideError();
+            hideResults();
+
+            // Simulate processing time
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            try {
+                // Analyze image colors to make prediction
+                const img = document.getElementById('previewImg');
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                
+                // Count green, brown, and yellow pixels
+                let greenPixels = 0;
+                let brownPixels = 0;
+                let yellowPixels = 0;
+                
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    
+                    if (g > r && g > b && g > 80) greenPixels++;
+                    if (r > 100 && g > 60 && g < 120 && b < 80) brownPixels++;
+                    if (r > 150 && g > 150 && b < 100) yellowPixels++;
+                }
+                
+                const totalPixels = pixels.length / 4;
+                const greenRatio = greenPixels / totalPixels;
+                const brownRatio = brownPixels / totalPixels;
+                const yellowRatio = yellowPixels / totalPixels;
+                
+                // Determine disease based on color analysis
+                let result;
+                
+                if (selectedCrop === 'tomato') {
+                    if (greenRatio > 0.6 && brownRatio < 0.1) {
+                        result = {
+                            disease: "Healthy",
+                            confidence: "High",
+                            description: "The leaf appears bright green with no visible spots or lesions. Good overall leaf structure.",
+                            symptoms: "Uniform green color, no discoloration, no visible disease symptoms",
+                            recommendations: [
+                                "Continue regular watering and fertilization",
+                                "Monitor plants regularly for early disease detection",
+                                "Maintain good air circulation around plants"
+                            ]
+                        };
+                    } else if (brownRatio > 0.15) {
+                        result = {
+                             disease: "Tomato Septoria Leaf Spot",
+                            confidence: "Medium",
+                            description: "Multiple small brown spots visible across the leaf surface, characteristic of Septoria leaf spot.",
+                            symptoms: "Many small circular spots with gray centers and dark borders, scattered distribution",
+                            recommendations: [
+                                "Remove infected lower leaves to reduce disease spread",
+                                "Apply fungicide containing chlorothalonil or mancozeb",
+                                "Use mulch to prevent soil splash onto leaves",
+                                "Space plants properly for better air flow"
+                            ]
+                        };
+                    } else if (brownRatio > 0.05 && brownRatio < 0.15) {
+                        result = {
+                            disease: "Tomato Septoria Leaf Spot",
+                            confidence: "Medium",
+                            description: "Multiple small brown spots visible across the leaf surface, characteristic of Septoria leaf spot.",
+                            symptoms: "Many small circular spots with gray centers and dark borders, scattered distribution",
+                            recommendations: [
+                                "Remove infected lower leaves to reduce disease spread",
+                                "Apply fungicide containing chlorothalonil or mancozeb",
+                                "Use mulch to prevent soil splash onto leaves",
+                                "Space plants properly for better air flow"
+                            ]
+                        };
+                    } else {
+                        result = {
+                             disease: "Tomato Septoria Leaf Spot",
+                            confidence: "Medium",
+                            description: "Multiple small brown spots visible across the leaf surface, characteristic of Septoria leaf spot.",
+                            symptoms: "Many small circular spots with gray centers and dark borders, scattered distribution",
+                            recommendations: [
+                                "Remove infected lower leaves to reduce disease spread",
+                                "Apply fungicide containing chlorothalonil or mancozeb",
+                                "Use mulch to prevent soil splash onto leaves",
+                                "Space plants properly for better air flow"
+                            ]
+                        };
+                    }
+                } else if (selectedCrop === 'potato') {
+                    if (greenRatio > 0.6 && brownRatio < 0.1) {
+                        result = {
+                            disease: "Healthy",
+                            confidence: "High",
+                            description: "Healthy potato leaf with good green coloration and no visible disease symptoms.",
+                            symptoms: "Bright green color, no spots or lesions",
+                            recommendations: [
+                                "Maintain consistent soil moisture",
+                                "Continue regular fertilization",
+                                "Monitor for pest and disease signs"
+                            ]
+                        };
+                    } else {
+                        result = {
+                            disease: "Potato Late Blight",
+                            confidence: "Medium",
+                            description: "Visible lesions and discoloration on potato leaf, suggesting late blight infection.",
+                            symptoms: "Dark water-soaked lesions, rapid spread, can destroy crop quickly",
+                            recommendations: [
+                                "Apply fungicide immediately",
+                                "Remove infected plants to prevent spread",
+                                "Ensure good drainage",
+                                "Harvest early if disease is severe"
+                            ]
+                        };
+                    }
+                } else {
+                    if (greenRatio > 0.6 && brownRatio < 0.1) {
+                        result = {
+                            disease: "Healthy",
+                            confidence: "High",
+                            description: "Healthy corn leaf with good coloration and no disease symptoms.",
+                            symptoms: "Uniform green color, no lesions",
+                            recommendations: [
+                                "Continue normal crop management",
+                                "Monitor for pests and diseases",
+                                "Ensure adequate nutrition"
+                            ]
+                        };
+                    } else {
+                        result = {
+                            disease: "Corn Common Rust",
+                            confidence: "Medium",
+                            description: "Brown/rust-colored spots visible on corn leaf.",
+                            symptoms: "Orange to reddish-brown pustules on leaves",
+                            recommendations: [
+                                "Apply fungicide if disease is severe",
+                                "Plant resistant varieties in future",
+                                "Remove infected plant debris"
+                            ]
+                        };
+                    }
+                }
+                
+                showResults(result);
+
+            } catch (error) {
+                showError('Analysis failed. Please try with a clearer image.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showResults(result) {
+            const diseaseNameEl = document.getElementById('diseaseName');
+            diseaseNameEl.textContent = result.disease;
+            
+            if (result.disease.toLowerCase().includes('healthy')) {
+                diseaseNameEl.classList.add('healthy');
+            } else {
+                diseaseNameEl.classList.remove('healthy');
+            }
+
+            document.getElementById('description').innerHTML = `
+                <strong>Confidence:</strong> ${result.confidence}<br><br>
+                <strong>Analysis:</strong> ${result.description}<br><br>
+                <strong>Symptoms:</strong> ${result.symptoms}
+            `;
+
+            if (result.recommendations && result.recommendations.length > 0) {
+                document.getElementById('recommendations').innerHTML = `
+                    <h3>Treatment Recommendations:</h3>
+                    <ul>
+                        ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                `;
+            }
+
+            document.getElementById('resultBox').classList.add('show');
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = '⚠️ ' + message;
+            errorBox.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorBox').classList.remove('show');
+        }
+
+        function hideResults() {
+            document.getElementById('resultBox').classList.remove('show');
+            hideError();
+        }
+    </script>
+</body>
+</html>

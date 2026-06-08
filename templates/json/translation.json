@@ -1,0 +1,45 @@
+{
+  "title": "பயிர் பரிந்துரை அமைப்பு",
+
+  "enter_details": "மண் மற்றும் காலநிலை விவரங்களை உள்ளிடவும்",
+  "welcomee_text": "விவசாயிகளே வரவேற்கிறோம்",
+
+  "temperature": "வெப்பநிலை",
+  "humidity": "ஈரப்பதம்",
+  "ph": "மண் pH",
+  "rainfall": "மழை அளவு",
+  "nitrogen": "நைட்ரஜன்",
+  "phosphorus": "பாஸ்பரஸ்",
+  "potassium": "பொட்டாசியம்",
+
+  "temperature_placeholder": "வெப்பநிலையை உள்ளிடவும்",
+  "humidity_placeholder": "ஈரப்பதத்தை உள்ளிடவும்",
+  "ph_placeholder": "மண் pH அளவை உள்ளிடவும்",
+  "rainfall_placeholder": "மழை அளவை உள்ளிடவும்",
+
+  "predict": "பயிர் கணிப்பு",
+  "submit_btn": "சமர்ப்பிக்கவும்",
+  "reset_btn": "மீட்டமை",
+
+  "recommended": "பரிந்துரைக்கப்பட்ட பயிர்",
+  "alternatives": "மற்ற பொருத்தமான பயிர்கள்",
+  "confidence": "நம்பிக்கை அளவு",
+
+  "loading": "செயலாக்கப்படுகிறது...",
+  "success": "கணிப்பு முடிந்தது",
+  "error": "பிழை ஏற்பட்டது",
+
+  "language": "மொழி",
+  "english": "ஆங்கிலம்",
+  "tamil": "தமிழ்",
+
+  "chatbot_title": "விவசாய உதவி உரையாடல்",
+  "chatbot_placeholder": "உங்கள் விவசாய கேள்வியை கேளுங்கள்",
+  "chatbot_send": "அனுப்பு",
+
+  "rice": "நெல்",
+  "wheat": "கோதுமை",
+  "maize": "மக்காச்சோளம்",
+  "cotton": "பருத்தி",
+  "sugarcane": "கரும்பு"
+}

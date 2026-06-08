@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Language Test</title>
+</head>
+
+<body>
+
+<h2 data-i18n="title">Welcome Farmers</h2>
+
+<p data-i18n="desc">
+This system helps you predict crop risk.
+</p>
+
+<button onclick="toggleLanguage()">🌐 Change Language</button>
+
+<script>
+
+const translations = {
+  en: {
+    title: "Welcome Farmers",
+    desc: "This system helps you predict crop risk."
+  },
+
+  ta: {
+    title: "வரவேற்கிறோம் விவசாயிகளே",
+    desc: "இந்த அமைப்பு பயிர் ஆபத்தை கணிக்க உதவுகிறது."
+  }
+};
+
+let currentLang = "en";
+
+function applyLanguage(lang) {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    el.innerText = translations[lang][key];
+  });
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === "en" ? "ta" : "en";
+  applyLanguage(currentLang);
+}
+
+</script>
+
+</body>
+</html>

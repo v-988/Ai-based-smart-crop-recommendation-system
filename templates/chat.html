@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CropWiseX Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f7f0; }
+        h1 { color: #2e7d32; text-align: center; }
+        .chat-box { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+  <h1>Ask CropWiseX Chatbot</h1>
+<div class="chat-box">
+  
+
+     <div class="text-center mt-4">
+                <a href="/dashboard" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+    <br><br>
+
+    <!-- Language selector -->
+    <select id="chat-language" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px;">
+      <option value="English">English</option>
+      <option value="Tamil">தமிழ்</option>
+    </select>
+
+    <!-- Chat input area -->
+    <textarea id="chat-input" placeholder="Type your question here (e.g., 'What to do for yellow leaves in paddy?' or 'பயிருக்கு மஞ்சள் இலை வந்தால் என்ன செய்யலாம்?')" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; resize: vertical;"></textarea>
+
+    <button id="voice-btn" onclick="startVoiceInput()" style="margin-top:10px; padding:10px; width:100%;">
+    🎤 Speak
+    </button>
+
+    <!-- Send button -->
+    <button onclick="sendMessage()" style="margin-top: 15px; padding: 14px; background: #2e7d32; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%;">
+      Send Question
+    </button>
+
+    <!-- Response area -->
+    <div id="chat-response" style="margin-top: 25px; padding: 20px; background: #f0f7f0; border-radius: 8px; min-height: 180px; border: 1px solid #c8e6c9; white-space: pre-wrap; line-height: 1.6;">
+      <p style="color: #555; text-align: center;">Your answer will appear here...</p>
+    </div>
+  </div>
+
+  <script>
+    // ── Voice list: load eagerly AND whenever the browser fires onvoiceschanged ──
+    let _voices = [];
+    function _loadVoices() {
+      const v = window.speechSynthesis.getVoices();
+      if (v && v.length) _voices = v;
+    }
+    _loadVoices();
+    if (typeof window.speechSynthesis !== 'undefined') {
+      window.speechSynthesis.onvoiceschanged = _loadVoices;
+    }
+
+    // Store the last reply here so speakText() can access it safely
+    // (avoids special characters breaking an inline onclick attribute)
+    window._lastReply = '';
+    window._lastLang  = 'English';
+
+    // ── Send text message ──────────────────────────────────────────────────────
+    async function sendMessage() {
+      const input      = document.getElementById('chat-input');
+      const langSelect = document.getElementById('chat-language');
+      const responseBox = document.getElementById('chat-response');
+
+      const message = input.value.trim();
+      if (!message) {
+        alert('Please type a question!');
+        return;
+      }
+
+      responseBox.innerHTML = '<p style="color: #2e7d32; text-align: center;">Thinking... Please wait.</p>';
+
+      try {
+        const sessionId = localStorage.getItem("session_id") || crypto.randomUUID();
+        localStorage.setItem("session_id", sessionId);
+
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, language: langSelect.value, session_id: sessionId })
+        });
+
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          window._lastReply = data.reply;
+          window._lastLang  = data.language;
+
+          responseBox.innerHTML = `
+            <strong>Reply (${data.language}):</strong><br>
+            ${data.reply.replace(/\n/g, '<br>')}
+            <br><br>
+            <button onclick="speakText(window._lastReply, window._lastLang)">🔊 Listen</button>
+          `;
+        } else {
+          responseBox.innerHTML = '<p style="color: red;">Error: ' + (data.message || 'Something went wrong') + '</p>';
+        }
+      } catch (err) {
+        responseBox.innerHTML = '<p style="color: red;">Network error: Could not reach server. Check if backend is running.</p>';
+        console.error(err);
+      }
+
+      input.value = '';
+    }
+
+    // Press Enter to send (Shift+Enter = new line)
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startVoiceInput() {
+      const btn = document.getElementById('voice-btn');
+      const input = document.getElementById('chat-input');
+      const langSelect = document.getElementById('chat-language');
+
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        // Stop recording
+        mediaRecorder.stop();
+        btn.textContent = '🎤 Speak';
+        btn.style.backgroundColor = '';
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.addEventListener('dataavailable', event => {
+          if (event.data.size > 0) audioChunks.push(event.data);
+        });
+
+        mediaRecorder.addEventListener('stop', async () => {
+          btn.textContent = '⏳ Transcribing...';
+          btn.disabled = true;
+
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.webm');
+
+          try {
+            const response = await fetch('/api/transcribe?language=' + encodeURIComponent(langSelect.value), {
+              method: 'POST',
+              body: formData
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 'success') {
+              input.value = result.text;
+            } else {
+              alert(result.detail || 'Failed to transcribe audio.');
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Failed to connect to transcription server.');
+          } finally {
+            btn.textContent = '🎤 Speak';
+            btn.disabled = false;
+            // Stop all tracks to release microphone
+            stream.getTracks().forEach(track => track.stop());
+          }
+        });
+
+        mediaRecorder.start();
+        btn.textContent = '🔴 Stop Recording';
+        btn.style.backgroundColor = '#f44336';
+        btn.style.color = 'white';
+
+      } catch (err) {
+        console.error('Microphone access error:', err);
+        alert('Could not access microphone. Please ensure microphone permissions are allowed.');
+      }
+    }
+
+    // ── Text-to-Speech ─────────────────────────────────────────────────────────
+    function speakText(text, language) {
+      if (!text) return;
+      window.speechSynthesis.cancel();
+
+      // Refresh voices in case they loaded after page start
+      _loadVoices();
+
+      const speech = new SpeechSynthesisUtterance(text);
+
+      if (language === "Tamil") {
+        const tamilVoice = _voices.find(v => v.lang && v.lang.startsWith("ta"));
+        if (tamilVoice) {
+          speech.voice = tamilVoice;
+          speech.lang  = tamilVoice.lang;
+        } else {
+          // No Tamil voice installed — fall back gracefully (no alert)
+          speech.lang = "ta-IN";
+        }
+      } else {
+        const engVoice = _voices.find(v => v.lang && (v.lang.startsWith("en-IN") || v.lang.startsWith("en")));
+        if (engVoice) speech.voice = engVoice;
+        speech.lang = "en-IN";
+      }
+
+      speech.onerror = function(e) {
+        console.warn("Speech synthesis error:", e.error);
+      };
+
+      window.speechSynthesis.speak(speech);
+    }
+  </script>
+</body>
+</html>

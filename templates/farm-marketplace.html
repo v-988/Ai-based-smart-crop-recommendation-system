@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KisanMart – Farm Tools & Vehicles</title>
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1b5e20; --green-mid: #2e7d32; --green-light: #43a047;
+  --green-pale: #e8f5e9; --gold: #f9a825; --gold-dark: #f57f17;
+  --red: #c62828; --brown: #4e342e; --bg: #f1f8e9;
+  --white: #ffffff; --gray: #546e7a; --shadow: 0 8px 32px rgba(27,94,32,0.13);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); min-height: 100vh; }
+
+/* HEADER */
+header { background: linear-gradient(135deg, var(--green) 60%, var(--green-light) 100%); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 18px rgba(0,0,0,0.18); height: 68px; }
+.logo { font-family: 'Yatra One', cursive; font-size: 1.9rem; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+.logo span { color: #fff; font-size: 0.9rem; font-family: 'Nunito', sans-serif; font-weight: 600; display: block; margin-top: -4px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.nav-contact-btn { background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); color: #fff; font-family: 'Nunito', sans-serif; font-weight: 700; padding: 8px 18px; border-radius: 30px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s; }
+.nav-contact-btn:hover { background: rgba(255,255,255,0.28); }
+#cart-btn { background: var(--gold); border: none; border-radius: 30px; padding: 10px 22px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1rem; color: var(--green); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s, transform 0.15s; }
+#cart-btn:hover { background: var(--gold-dark); transform: scale(1.04); }
+#cart-count { background: var(--red); color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 0.78rem; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+
+/* HERO */
+.hero { background: linear-gradient(120deg, #1b5e20 0%, #33691e 60%, #558b2f 100%); color: #fff; text-align: center; padding: 48px 20px 36px; position: relative; overflow: hidden; }
+.hero::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+.hero h1 { font-family: 'Yatra One', cursive; font-size: 2.4rem; color: var(--gold); text-shadow: 0 2px 8px rgba(0,0,0,0.3); position: relative; }
+.hero p { font-size: 1.1rem; margin-top: 8px; opacity: 0.92; position: relative; }
+
+/* CONTROLS */
+.controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding: 24px 20px 8px; }
+.controls input, .controls select { padding: 12px 18px; border: 2px solid #c8e6c9; border-radius: 30px; font-family: 'Nunito', sans-serif; font-size: 1rem; background: #fff; color: var(--green); font-weight: 600; outline: none; transition: border 0.2s; min-width: 200px; }
+.controls input:focus, .controls select:focus { border-color: var(--green-light); }
+.section-header { text-align: center; padding: 10px 20px 4px; color: var(--green); font-size: 0.95rem; font-weight: 700; opacity: 0.7; }
+
+/* GRID */
+.grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; padding: 24px 32px 48px; max-width: 1400px; margin: 0 auto; }
+.card { background: var(--white); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.22s, box-shadow 0.22s; animation: fadeUp 0.4s ease both; }
+.card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(27,94,32,0.18); }
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.card-img-wrap { position: relative; height: 180px; overflow: hidden; background: var(--green-pale); }
+.card-img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform 0.4s; }
+.card:hover .card-img-wrap img { transform: scale(1.07); }
+.cat-badge { position:absolute; top:12px; left:12px; background:var(--green); color:#fff; font-size:0.72rem; font-weight:800; border-radius:20px; padding:3px 12px; text-transform:uppercase; }
+.cat-badge.vehicle { background: var(--brown); }
+.rent-tag { position:absolute; top:12px; right:12px; background:var(--gold); color:var(--green); font-size:0.7rem; font-weight:800; border-radius:20px; padding:3px 10px; }
+.card-body { padding:16px; flex:1; display:flex; flex-direction:column; }
+.card-body h3 { font-size:1.12rem; font-weight:800; color:var(--green); margin-bottom:4px; }
+.card-desc { font-size:0.84rem; color:var(--gray); margin-bottom:10px; flex:1; line-height:1.5; }
+.price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.buy-price { font-weight:800; color:var(--red); font-size:0.95rem; }
+.rent-price { font-weight:700; color:var(--brown); font-size:0.82rem; }
+.card-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.btn-details { background:none; border:2px solid var(--green-light); color:var(--green); font-family:'Nunito',sans-serif; font-weight:700; padding:8px 0; border-radius:10px; cursor:pointer; font-size:0.88rem; transition:background 0.18s; }
+.btn-details:hover { background: var(--green-pale); }
+.btn-cart { background:var(--green-light); border:none; color:#fff; font-family:'Nunito',sans-serif; font-weight:700; padding:8px 0; border-radius:10px; cursor:pointer; font-size:0.88rem; transition:background 0.18s; }
+.btn-cart:hover { background: var(--green); }
+.btn-rent { grid-column:1/-1; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); border:none; color:var(--green); font-family:'Nunito',sans-serif; font-weight:800; padding:9px 0; border-radius:10px; cursor:pointer; font-size:0.9rem; transition:opacity 0.18s; }
+.btn-rent:hover { opacity: 0.88; }
+.no-results { text-align:center; padding:60px 20px; color:var(--gray); font-size:1.1rem; grid-column:1/-1; display:none; }
+
+/* OVERLAY */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:none; align-items:center; justify-content:center; padding:16px; overflow-y:auto; }
+.overlay.active { display:flex; }
+.modal { background:#fff; border-radius:22px; max-width:680px; width:100%; max-height:92vh; overflow-y:auto; box-shadow:0 24px 64px rgba(0,0,0,0.3); animation:popIn 0.3s cubic-bezier(.34,1.56,.64,1) both; position:relative; }
+.modal.wide { max-width: 620px; }
+@keyframes popIn { from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+.modal-close { position:absolute; top:14px; right:16px; background:#eee; border:none; font-size:1.3rem; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:800; color:#555; transition:background 0.15s; z-index:10; }
+.modal-close:hover { background: #ddd; }
+.modal-img { width:100%; height:240px; object-fit:cover; border-radius:22px 22px 0 0; }
+.modal-body { padding:24px; }
+.modal-body h2 { font-family:'Yatra One',cursive; font-size:1.7rem; color:var(--green); }
+.modal-badge { display:inline-block; background:var(--green-pale); color:var(--green); font-size:0.8rem; font-weight:700; border-radius:20px; padding:3px 14px; margin:6px 0 12px; text-transform:uppercase; }
+.detail-section { margin-bottom:18px; }
+.detail-section h4 { font-size:0.85rem; font-weight:800; text-transform:uppercase; color:var(--gray); letter-spacing:1px; margin-bottom:6px; }
+.detail-section p { color:#37474f; font-size:0.97rem; line-height:1.6; }
+.uses-list { list-style:none; }
+.uses-list li { display:flex; align-items:flex-start; gap:8px; margin-bottom:6px; font-size:0.95rem; color:#37474f; }
+.uses-list li::before { content:'🌿'; font-size:0.9rem; margin-top:2px; flex-shrink:0; }
+.price-box { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+.p-box { background:var(--green-pale); border-radius:12px; padding:14px; text-align:center; }
+.p-box .label { font-size:0.78rem; font-weight:700; color:var(--gray); text-transform:uppercase; margin-bottom:4px; }
+.p-box .amount { font-size:1.1rem; font-weight:800; color:var(--red); }
+.p-box.rent-box { background:#fff8e1; }
+.p-box.rent-box .amount { color:var(--gold-dark); }
+.modal-actions { display:flex; gap:12px; }
+.modal-actions button { flex:1; padding:13px; border-radius:12px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:800; cursor:pointer; border:none; transition:opacity 0.15s; }
+.modal-actions button:hover { opacity:0.88; }
+.mbtn-cart { background:var(--green); color:#fff; }
+.mbtn-rent { background:var(--gold); color:var(--green); }
+
+/* FORM */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-weight:700; color:var(--green); margin-bottom:6px; font-size:0.92rem; }
+.form-group input, .form-group select, .form-group textarea { width:100%; padding:11px 14px; border:2px solid #c8e6c9; border-radius:10px; font-family:'Nunito',sans-serif; font-size:0.97rem; color:#333; outline:none; transition:border 0.2s; background:#fff; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--green-light); }
+.form-group textarea { resize:vertical; min-height:85px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-submit { width:100%; padding:14px; background:var(--green); color:#fff; font-family:'Nunito',sans-serif; font-weight:800; font-size:1.05rem; border:none; border-radius:12px; cursor:pointer; transition:background 0.18s, opacity 0.18s; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:10px; }
+.form-submit:hover { background:var(--green-mid); }
+.form-submit:disabled { opacity:0.65; cursor:not-allowed; }
+.form-submit.gold { background:var(--gold); color:var(--green); }
+.form-submit.gold:hover { background:var(--gold-dark); }
+
+/* SPINNER */
+.spinner { width:18px; height:18px; border:3px solid rgba(255,255,255,0.4); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+.spinner.gold { border-top-color:var(--green); border-color:rgba(30,94,32,0.3); }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* RENT MODAL */
+.rent-modal-header { background:linear-gradient(135deg,var(--gold),var(--gold-dark)); padding:22px 24px 16px; border-radius:22px 22px 0 0; }
+.rent-modal-header h2 { font-family:'Yatra One',cursive; color:var(--green); font-size:1.5rem; }
+.slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; }
+.slot-btn { padding:9px 4px; border:2px solid #c8e6c9; border-radius:10px; background:#fff; color:var(--green); font-family:'Nunito',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; transition:all 0.18s; text-align:center; line-height:1.3; }
+.slot-btn:hover { border-color:var(--green-light); background:var(--green-pale); }
+.slot-btn.selected { background:var(--green); color:#fff; border-color:var(--green); }
+.slot-btn.booked { background:#f5f5f5; color:#bbb; cursor:not-allowed; border-color:#e0e0e0; text-decoration:line-through; }
+.duration-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.dur-btn { padding:8px 14px; border:2px solid #c8e6c9; border-radius:20px; background:#fff; color:var(--green); font-family:'Nunito',sans-serif; font-weight:700; font-size:0.83rem; cursor:pointer; transition:all 0.18s; }
+.dur-btn.selected { background:var(--gold); color:var(--green); border-color:var(--gold); }
+.rent-summary { background:var(--green-pale); border-radius:12px; padding:13px 16px; margin:14px 0; font-size:0.88rem; color:var(--green); font-weight:700; display:none; line-height:1.8; border-left:4px solid var(--green-light); }
+.rent-summary span { color:var(--red); font-weight:800; }
+
+/* CHECKOUT */
+.checkout-header { background:var(--green); padding:22px 24px 16px; border-radius:22px 22px 0 0; }
+.checkout-header h2 { font-family:'Yatra One',cursive; color:var(--gold); font-size:1.5rem; }
+.checkout-header p { color:rgba(255,255,255,0.8); font-size:0.88rem; margin-top:4px; }
+.checkout-items { background:var(--green-pale); border-radius:10px; padding:12px 14px; margin-bottom:18px; }
+.co-item { display:flex; justify-content:space-between; font-size:0.9rem; padding:5px 0; border-bottom:1px solid #c8e6c9; }
+.co-item:last-child { border:none; }
+.co-item .ci-label { font-weight:700; color:var(--green); }
+.co-item .ci-val { color:var(--gray); }
+.payment-opts { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.pay-opt { flex:1; min-width:100px; padding:10px 8px; border:2px solid #c8e6c9; border-radius:10px; text-align:center; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.82rem; color:var(--green); background:#fff; transition:all 0.18s; }
+.pay-opt:hover { border-color:var(--green-light); background:var(--green-pale); }
+.pay-opt.selected { background:var(--green); color:#fff; border-color:var(--green); }
+.pay-icon { font-size:1.3rem; display:block; margin-bottom:3px; }
+
+/* CART */
+.cart-panel { position:fixed; top:0; right:-420px; width:400px; height:100vh; background:#fff; z-index:300; box-shadow:-8px 0 40px rgba(0,0,0,0.2); display:flex; flex-direction:column; transition:right 0.35s cubic-bezier(.4,0,.2,1); }
+.cart-panel.open { right:0; }
+.cart-header { background:var(--green); color:#fff; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; font-size:1.2rem; font-weight:800; font-family:'Yatra One',cursive; }
+.cart-header button { background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer; }
+.cart-items { flex:1; overflow-y:auto; padding:16px; }
+.cart-empty { text-align:center; padding:60px 20px; color:var(--gray); }
+.cart-empty div { font-size:3rem; margin-bottom:12px; }
+.cart-item { display:flex; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid #eee; }
+.cart-item img { width:60px; height:60px; object-fit:cover; border-radius:10px; }
+.ci-info { flex:1; }
+.ci-info .ci-name { font-weight:800; color:var(--green); font-size:0.95rem; }
+.ci-info .ci-type { font-size:0.78rem; color:var(--gray); margin-bottom:3px; }
+.ci-info .ci-price { font-weight:800; color:var(--red); font-size:0.9rem; }
+.ci-remove { background:none; border:none; color:#e53935; cursor:pointer; font-size:1.2rem; padding:4px; }
+.cart-footer { padding:20px; border-top:2px solid var(--green-pale); }
+.cart-total { font-weight:800; font-size:1.1rem; color:var(--green); margin-bottom:14px; display:flex; justify-content:space-between; }
+.cart-checkout { width:100%; padding:14px; background:var(--green); color:#fff; font-family:'Nunito',sans-serif; font-weight:800; font-size:1.05rem; border:none; border-radius:14px; cursor:pointer; transition:background 0.18s; }
+.cart-checkout:hover { background:var(--green-mid); }
+.cart-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:299; display:none; }
+.cart-backdrop.active { display:block; }
+
+/* CONTACT SECTION */
+.contact-section { background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 100%); padding:64px 32px; position:relative; overflow:hidden; }
+.contact-section::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+.contact-inner { max-width:1100px; margin:0 auto; position:relative; }
+.contact-title { text-align:center; margin-bottom:48px; }
+.contact-title h2 { font-family:'Yatra One',cursive; font-size:2rem; color:var(--gold); }
+.contact-title p { color:rgba(255,255,255,0.85); margin-top:8px; font-size:1rem; }
+.contact-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:40px; align-items:start; }
+.contact-info { color:#fff; }
+.contact-info h3 { font-family:'Yatra One',cursive; font-size:1.3rem; color:var(--gold); margin-bottom:24px; }
+.info-card { display:flex; gap:14px; align-items:flex-start; margin-bottom:22px; }
+.info-icon { font-size:1.6rem; flex-shrink:0; margin-top:2px; }
+.info-text .ilabel { font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; color:rgba(255,255,255,0.6); margin-bottom:3px; }
+.info-text .ivalue { font-size:1rem; font-weight:700; color:#fff; }
+.info-text a { color:var(--gold); text-decoration:none; }
+.info-text a:hover { text-decoration:underline; }
+.hours-box { background:rgba(255,255,255,0.1); border-radius:14px; padding:16px; margin-top:8px; }
+.h-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem; }
+.h-row:last-child { border:none; }
+.h-row .day { color:rgba(255,255,255,0.75); }
+.h-row .time { font-weight:700; color:var(--gold); }
+.contact-form-wrap { background:#fff; border-radius:20px; padding:28px; box-shadow:0 16px 48px rgba(0,0,0,0.2); }
+.contact-form-wrap h3 { font-family:'Yatra One',cursive; font-size:1.25rem; color:var(--green); margin-bottom:20px; }
+
+/* SUCCESS */
+.success-screen { text-align:center; padding:40px 24px; }
+.success-screen .s-icon { font-size:4rem; margin-bottom:16px; }
+.success-screen h2 { font-family:'Yatra One',cursive; color:var(--green); font-size:1.8rem; margin-bottom:10px; }
+.success-screen p { color:var(--gray); font-size:0.97rem; line-height:1.7; }
+.success-screen .ref { font-size:1.05rem; font-weight:800; color:var(--green); background:var(--green-pale); padding:10px 20px; border-radius:10px; display:inline-block; margin:14px 0; }
+.success-screen .close-btn { background:var(--green); color:#fff; font-family:'Nunito',sans-serif; font-weight:800; padding:12px 32px; border:none; border-radius:12px; cursor:pointer; font-size:1rem; margin-top:12px; }
+
+/* SHEETS BADGE */
+.sheets-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px 14px; margin-top: 20px; font-size: 0.82rem; color: rgba(255,255,255,0.8); text-align: center; }
+.sheets-badge strong { color: var(--gold); }
+
+/* FOOTER */
+footer { background:#0a3d0c; color:rgba(255,255,255,0.75); padding:36px 32px; text-align:center; font-size:0.92rem; }
+.footer-logo { font-family:'Yatra One',cursive; font-size:1.5rem; color:var(--gold); margin-bottom:8px; }
+.footer-links { display:flex; justify-content:center; gap:24px; margin:14px 0 8px; flex-wrap:wrap; }
+.footer-links a { font-weight:700; font-size:0.9rem; color:var(--gold); text-decoration:none; }
+.footer-links a:hover { text-decoration:underline; }
+hr.fdiv { border:none; border-top:1px solid rgba(255,255,255,0.1); margin:18px 0; }
+
+/* TOAST */
+.toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); color:#fff; padding:13px 28px; border-radius:40px; font-weight:700; font-size:1rem; z-index:500; transition:transform 0.35s cubic-bezier(.4,0,.2,1),opacity 0.35s; opacity:0; pointer-events:none; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+.toast.info { background: #1565c0; }
+
+/* RESPONSIVE */
+@media(max-width:768px) {
+  .contact-grid { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .grid-container { padding:16px; gap:16px; }
+  .hero h1 { font-size:1.7rem; }
+  .cart-panel { width:100%; right:-100%; }
+  header { padding:0 14px; }
+  .logo { font-size:1.3rem; }
+  .nav-contact-btn { display:none; }
+  .contact-section { padding:40px 16px; }
+  .slot-grid { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ▲ IMPORTANT: Replace the URL below with your actual Google Apps Script Web App URL -->
+<!-- After following the setup guide, paste your URL here -->
+<script>
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbxtiOtX-3q8uaH9Vjur8Ei0TbYLke7Lw5gRv4_dhwDfQHHH2GxLrmJOE4ncoxM62m3i/exec";
+  // Example: "https://script.google.com/macros/s/AKfycbx.../exec"
+</script>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">🌾 KisanMart <span>India's Farm Equipment Store</span></div>
+  <div class="header-right">
+    <button class="nav-contact-btn" onclick="scrollToContact()">📞 Contact Us</button>
+    <button id="cart-btn" onclick="openCart()">🛒 Cart <span id="cart-count">0</span></button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>🚜 Farm Tools & Vehicles</h1>
+  <p>Buy or Rent quality equipment directly — trusted by farmers across India</p>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <input type="text" id="search" placeholder="🔍 Search equipment..." oninput="filterItems()">
+  <select id="category" onchange="filterItems()">
+    <option value="all">📦 All Categories</option>
+    <option value="tool">🔧 Tools</option>
+    <option value="vehicle">🚛 Vehicles</option>
+  </select>
+  <select id="sortby" onchange="filterItems()">
+    <option value="default">Sort By</option>
+    <option value="price-low">Price: Low to High</option>
+    <option value="price-high">Price: High to Low</option>
+  </select>
+</div>
+<div class="section-header" id="result-count"></div>
+<div class="grid-container" id="grid"></div>
+<div class="no-results" id="no-results">😕 No equipment found. Try a different search.</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal('overlay')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('overlay')">✕</button>
+    <img class="modal-img" id="m-img" src="" alt="">
+    <div class="modal-body">
+      <h2 id="m-name"></h2>
+      <span class="modal-badge" id="m-cat"></span>
+      <div class="detail-section"><h4>About This Equipment</h4><p id="m-about"></p></div>
+      <div class="detail-section"><h4>Key Uses</h4><ul class="uses-list" id="m-uses"></ul></div>
+      <div class="price-box">
+        <div class="p-box"><div class="label">Buy Price</div><div class="amount" id="m-buy-price"></div></div>
+        <div class="p-box rent-box"><div class="label">Rent / Day</div><div class="amount" id="m-rent-price"></div></div>
+      </div>
+      <div class="detail-section"><h4>Specifications</h4><p id="m-specs"></p></div>
+      <div class="modal-actions">
+        <button class="mbtn-cart" id="m-buy-btn">🛒 Add to Cart (Buy)</button>
+        <button class="mbtn-rent" id="m-rent-btn">📅 Book Rental Slot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENT SLOT MODAL -->
+<div class="overlay" id="rent-overlay" onclick="if(event.target===this)closeModal('rent-overlay')">
+  <div class="modal wide">
+    <button class="modal-close" onclick="closeModal('rent-overlay')">✕</button>
+    <div class="rent-modal-header">
+      <h2>📅 Book Rental Slot</h2>
+      <p id="rent-equip-name" style="font-weight:800;font-size:1rem;color:#4e342e;margin-top:6px;"></p>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>📆 Select Start Date *</label>
+        <input type="date" id="rent-date" onchange="updateSlots()">
+      </div>
+      <div class="form-group">
+        <label>⏱️ Rental Duration *</label>
+        <div class="duration-tabs" id="dur-tabs">
+          <button class="dur-btn selected" onclick="selDur(this,'1 Day')">1 Day</button>
+          <button class="dur-btn" onclick="selDur(this,'2 Days')">2 Days</button>
+          <button class="dur-btn" onclick="selDur(this,'3 Days')">3 Days</button>
+          <button class="dur-btn" onclick="selDur(this,'1 Week')">1 Week</button>
+          <button class="dur-btn" onclick="selDur(this,'2 Weeks')">2 Weeks</button>
+          <button class="dur-btn" onclick="selDur(this,'1 Month')">1 Month</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🕐 Available Time Slots * <span style="font-size:0.78rem;color:#aaa;font-weight:600;">(tap to select)</span></label>
+        <div class="slot-grid" id="slot-grid">
+          <div style="color:var(--gray);font-size:0.88rem;grid-column:1/-1;padding:10px;">👆 Please select a date first to see available slots.</div>
+        </div>
+      </div>
+      <div class="rent-summary" id="rent-summary">
+        📋 <strong>Booking Summary</strong><br>
+        🚜 Equipment: <span id="rs-equip"></span><br>
+        📅 Date: <span id="rs-date"></span> &nbsp;|&nbsp; 🕐 Slot: <span id="rs-slot"></span><br>
+        ⏱️ Duration: <span id="rs-dur"></span> &nbsp;|&nbsp; 💰 Rate: <span id="rs-price"></span>
+      </div>
+      <div style="border-top:2px solid var(--green-pale);padding-top:18px;margin-top:4px;">
+        <p style="font-weight:800;color:var(--green);margin-bottom:14px;font-size:0.95rem;">👤 Your Contact Details</p>
+        <div class="form-group"><label>Full Name *</label><input type="text" id="rent-name" placeholder="e.g. Raju Sharma"></div>
+        <div class="form-row">
+          <div class="form-group"><label>📱 Mobile Number *</label><input type="tel" id="rent-phone" placeholder="10-digit mobile" maxlength="10"></div>
+          <div class="form-group"><label>📍 Village / District *</label><input type="text" id="rent-location" placeholder="e.g. Thanjavur, TN"></div>
+        </div>
+        <div class="form-group"><label>📝 Special Instructions (optional)</label><textarea id="rent-notes" placeholder="Any delivery note, access instructions, etc."></textarea></div>
+      </div>
+      <button class="form-submit gold" id="rent-submit-btn" onclick="confirmRental()">
+        <span class="spinner" id="rent-spinner"></span>
+        <span id="rent-btn-text">✅ Confirm Rental Booking</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="overlay" id="checkout-overlay" onclick="if(event.target===this)closeModal('checkout-overlay')">
+  <div class="modal wide">
+    <button class="modal-close" onclick="closeModal('checkout-overlay')">✕</button>
+    <div class="checkout-header">
+      <h2>🛒 Order Checkout</h2>
+      <p>Fill your details — we'll call you within 24 hours to confirm</p>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <h4>Your Order</h4>
+        <div class="checkout-items" id="co-items-list"></div>
+      </div>
+      <div class="form-group"><label>👤 Full Name *</label><input type="text" id="co-name" placeholder="Your full name"></div>
+      <div class="form-row">
+        <div class="form-group"><label>📱 Mobile Number *</label><input type="tel" id="co-phone" placeholder="10-digit mobile" maxlength="10"></div>
+        <div class="form-group"><label>📧 Email (optional)</label><input type="email" id="co-email" placeholder="your@email.com"></div>
+      </div>
+      <div class="form-group"><label>📍 Delivery Address *</label><textarea id="co-address" placeholder="Village / Taluk / District / State / PIN Code"></textarea></div>
+      <div class="form-group">
+        <label>💳 Payment Method *</label>
+        <div class="payment-opts">
+          <div class="pay-opt selected" onclick="selPay(this,'UPI / GPay')"><span class="pay-icon">📲</span>UPI / GPay</div>
+          <div class="pay-opt" onclick="selPay(this,'Bank Transfer')"><span class="pay-icon">🏦</span>Bank Transfer</div>
+          <div class="pay-opt" onclick="selPay(this,'Cash on Delivery')"><span class="pay-icon">💵</span>Cash on Delivery</div>
+          <div class="pay-opt" onclick="selPay(this,'EMI / Agri Loan')"><span class="pay-icon">📋</span>EMI / Agri Loan</div>
+        </div>
+      </div>
+      <div class="form-group"><label>📝 Notes (optional)</label><textarea id="co-notes" placeholder="Delivery timing, quantity, special requirements..."></textarea></div>
+      <button class="form-submit" id="order-submit-btn" onclick="placeOrder()">
+        <span class="spinner" id="order-spinner"></span>
+        <span id="order-btn-text">🚀 Place Order — Save to Google Sheets</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="overlay" id="success-overlay">
+  <div class="modal" style="max-width:480px;">
+    <div class="success-screen" id="success-body"></div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="cart-backdrop" id="cart-backdrop" onclick="closeCart()"></div>
+<div class="cart-panel" id="cart-panel">
+  <div class="cart-header">🛒 Your Cart <button onclick="closeCart()">✕</button></div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div class="cart-total"><span>Items</span><span id="cart-total-amt">0</span></div>
+    <button class="cart-checkout" onclick="openCheckout()">✅ Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- CONTACT SECTION -->
+<section class="contact-section" id="contact-section">
+  <div class="contact-inner">
+    <div class="contact-title">
+      <h2>📞 Contact KisanMart</h2>
+      <p>Have a query about equipment, prices, or rentals? Reach us — we're always here to help.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <h3>🌾 Get In Touch</h3>
+        <div class="info-card">
+          <div class="info-icon">📞</div>
+          <div class="info-text">
+            <div class="ilabel">Phone / WhatsApp</div>
+            <div class="ivalue"><a href="tel:+919876543210">+91 98765 43210</a></div>
+            <div class="ivalue" style="font-size:0.88rem;opacity:0.85;"><a href="tel:+918765432109">+91 87654 32109</a> (Rentals)</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">📧</div>
+          <div class="info-text">
+            <div class="ilabel">Email</div>
+            <div class="ivalue"><a href="mailto:support@kisanmart.in">support@kisanmart.in</a></div>
+            <div class="ivalue" style="font-size:0.88rem;opacity:0.85;"><a href="mailto:rentals@kisanmart.in">rentals@kisanmart.in</a></div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">📍</div>
+          <div class="info-text">
+            <div class="ilabel">Office Address</div>
+            <div class="ivalue">KisanMart Agri Centre,<br>Near APMC Yard, Gummidipundi – 601 201,<br>Tamil Nadu, India</div>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-icon">🕐</div>
+          <div class="info-text">
+            <div class="ilabel">Working Hours</div>
+            <div class="hours-box">
+              <div class="h-row"><span class="day">Monday – Saturday</span><span class="time">8:00 AM – 7:00 PM</span></div>
+              <div class="h-row"><span class="day">Sunday</span><span class="time">9:00 AM – 2:00 PM</span></div>
+              <div class="h-row"><span class="day">Public Holidays</span><span class="time">Closed</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="sheets-badge">
+          📊 All orders, rentals & queries are automatically saved to <strong>Google Sheets</strong> — view them anytime on your phone or laptop.
+        </div>
+      </div>
+
+      <div class="contact-form-wrap">
+        <h3>✉️ Send Us a Message</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Your Name *</label><input type="text" id="q-name" placeholder="Full name"></div>
+          <div class="form-group"><label>Mobile Number *</label><input type="tel" id="q-phone" placeholder="10-digit mobile" maxlength="10"></div>
+        </div>
+        <div class="form-group"><label>Email Address *</label><input type="email" id="q-email" placeholder="your@email.com"></div>
+        <div class="form-group">
+          <label>Query Type</label>
+          <select id="q-subject">
+            <option>General Enquiry</option>
+            <option>Price / Availability</option>
+            <option>Rental Booking Help</option>
+            <option>Order Status / Tracking</option>
+            <option>Complaint / Feedback</option>
+            <option>Bulk / Dealer Enquiry</option>
+            <option>Government Subsidy / Scheme</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Your Message *</label><textarea id="q-message" placeholder="Describe your query or requirement in detail. We reply within 2–4 hours on working days."></textarea></div>
+        <button class="form-submit" id="contact-submit-btn" onclick="sendQuery()">
+          <span class="spinner" id="contact-spinner"></span>
+          <span id="contact-btn-text">📨 Send Message — Save to Google Sheets</span>
+        </button>
+        <p style="font-size:0.8rem;color:#888;margin-top:10px;text-align:center;">For urgent help, call or WhatsApp: <a href="tel:+919876543210" style="color:var(--green);font-weight:700;">+91 98765 43210</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">🌾 KisanMart</div>
+  <p>India's Trusted Farm Equipment Marketplace</p>
+  <div class="footer-links">
+    <a href="mailto:support@kisanmart.in">📧 support@kisanmart.in</a>
+    <a href="tel:+919876543210">📞 +91 98765 43210</a>
+    <a href="#" onclick="scrollToContact()">📍 Our Location</a>
+    <a href="mailto:rentals@kisanmart.in">🏷️ Rentals</a>
+  </div>
+  <hr class="fdiv">
+  <p>© 2025 KisanMart. All rights reserved. &nbsp;|&nbsp; Empowering Farmers Across India 🇮🇳</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  GOOGLE SHEETS SUBMIT FUNCTION
+//  All 3 forms (Order, Rental, Contact) use this
+// ═══════════════════════════════════════════════════
+async function submitToSheets(data, btnId, spinnerId, btnTextId, btnText) {
+  const btn = document.getElementById(btnId);
+  const spinner = document.getElementById(spinnerId);
+  const btnTextEl = document.getElementById(btnTextId);
+
+  // Show loading state
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  btnTextEl.textContent = 'Saving to Google Sheets...';
+
+  try {
+     const SHEET_ID = "https://script.google.com/macros/s/AKfycbx42HWF0Hsq7DFYkf-QwLjHWgxlSA9lC2ZTS8sPFrXqY-l-O1XBxVysOcwTkWVDh0h5/exec"; // ← REPLACE THIS
+    //const SHEET_ID = "https://docs.google.com/spreadsheets/d/1-k7XVtoV8r0d-PQVtU6cO3Pyzf4sWERq0gsYhbNbi0k/edit?gid=0#gid=0";
+    if (!SHEET_URL || SHEET_URL === '') {
+      // Demo mode — simulate success if URL not set yet
+      await new Promise(r => setTimeout(r, 1200));
+      return { status: 'success' };
+    }
+
+    const res = await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Required for Apps Script
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    // no-cors means we can't read the response, but if no error thrown = success
+    return { status: 'success' };
+
+  } catch (err) {
+    return { status: 'error', message: err.message };
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    btnTextEl.textContent = btnText;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  PRODUCT DATA
+// ═══════════════════════════════════════════════════
+const products = [
+  {id:1,name:"Tractor",category:"vehicle",img:"tractor.jpg",buyPrice:"₹5,00,000 – ₹9,00,000",buyMin:500000,rentPrice:"₹2,500 – ₹4,500 / day",rentMin:2500,about:"A tractor is the backbone of modern farming. Powered by a diesel engine, it drives various agricultural implements like ploughs, rotavators, and seeders across diverse terrains.",uses:["Ploughing and tilling fields for sowing","Transporting crops and farm materials","Driving attachments like rotavators, harrows, and seeders","Levelling land before cultivation","Spraying pesticides via PTO-powered sprayers"],specs:"Power: 30–90 HP | Fuel: Diesel | Drive: 2WD / 4WD | PTO: Yes | Suitable for: All farm sizes"},
+  {id:2,name:"Power Tiller",category:"vehicle",img:"power-tiller.jpg.jpeg",buyPrice:"₹45,000 – ₹80,000",buyMin:45000,rentPrice:"₹600 – ₹1,200 / day",rentMin:600,about:"A compact two-wheeled tractor ideal for small and marginal farmers, especially on hilly terrain and wetland paddy fields.",uses:["Puddling paddy fields for transplanting","Inter-cultivation and weeding between rows","Tillage in small and irregular plots","Transporting small loads with trailer attachment","Operating small threshers and pumps via belt"],specs:"Power: 8–16 HP | Type: Walk-behind | Best for: Small farms, paddy, hilly areas"},
+  {id:3,name:"Rotavator",category:"tool",img:"rotovator.jpg",buyPrice:"₹70,000 – ₹2,00,000",buyMin:70000,rentPrice:"₹1,500 – ₹3,000 / day",rentMin:1500,about:"A tractor-mounted implement with rotating blades that breaks and mixes soil simultaneously, preparing a perfect seedbed in a single pass.",uses:["Seedbed preparation in one pass","Incorporating stubble and crop residue into soil","Breaking hard clods and loosening compacted soil","Secondary tillage after ploughing","Mixing fertilizers and organic matter into topsoil"],specs:"Working width: 4–8 ft | Blades: L-type / C-type | Tractor req.: 35–75 HP | Depth: 5–15 cm"},
+  {id:4,name:"Plough",category:"tool",img:"chisel-ploughing.jpg.jpeg",buyPrice:"₹5,000 – ₹20,000",buyMin:5000,rentPrice:"₹300 – ₹700 / day",rentMin:300,about:"The most fundamental farming implement for primary tillage. Ploughs cut, lift, and invert soil slices, burying surface vegetation and exposing the subsoil.",uses:["Primary tillage and deep soil turning","Burying weeds, stubble, and crop residues","Breaking new or fallow land","Improving drainage and aeration","Preparing land before sowing rabi/kharif crops"],specs:"Type: Disc / MB / Chisel | Furrow width: 6–24 inches | Depth: 10–30 cm | Tractor req.: 25–50 HP"},
+  {id:5,name:"Cultivator",category:"tool",img:"Cultivator_799x618.webp",buyPrice:"₹15,000 – ₹60,000",buyMin:15000,rentPrice:"₹500 – ₹1,000 / day",rentMin:500,about:"A secondary tillage tool used after ploughing to stir and pulverise the soil, destroy weeds, and conserve moisture.",uses:["Secondary tillage and soil pulverisation","Weeding between crop rows","Loosening soil surface crust","Blending fertilizers into soil","Seedbed preparation for small-seeded crops"],specs:"Tines: 7–11 | Spacing: 6–12 inches | Working depth: 5–15 cm | Tractor req.: 25–50 HP"},
+  {id:6,name:"Disc Harrow",category:"tool",img:"dischorrow.jpg",buyPrice:"₹40,000 – ₹1,50,000",buyMin:40000,rentPrice:"₹800 – ₹1,500 / day",rentMin:800,about:"Disc harrows use gangs of steel discs to break soil clods, cut crop residue, and level the field surface.",uses:["Breaking large soil clods after ploughing","Cutting and incorporating crop residue","Levelling and smoothening field surface","Preparing soil in hard and sticky conditions","Reducing weed seed bank in top soil"],specs:"Disc diameter: 16–26 inches | No. of discs: 8–32 | Tractor req.: 35–60 HP | Type: Offset / Tandem"},
+  {id:7,name:"Chaff Cutter",category:"tool",img:"chaffcutter.jpg",buyPrice:"₹20,000 – ₹80,000",buyMin:20000,rentPrice:"₹500 – ₹900 / day",rentMin:500,about:"A chaff cutter chops dry fodder into small pieces for livestock feeding, significantly improving digestibility.",uses:["Cutting straw and hay for cattle and buffalo","Chopping green fodder crops like maize and sorghum","Reducing wastage of expensive fodder","Preparing silage by cutting green fodder finely","Mixing chopped fodder with feed concentrates easily"],specs:"Power: Manual / 1–3 HP electric / Tractor-PTO | Capacity: 200–2000 kg/hr | Cut length: 5–30 mm"},
+  {id:8,name:"Reaper Machine",category:"tool",img:"reapermachine.jpg",buyPrice:"₹1,00,000 – ₹2,50,000",buyMin:100000,rentPrice:"₹1,200 – ₹2,500 / day",rentMin:1200,about:"A reaper mechanises the harvesting of standing cereal crops by cutting the stems at the base.",uses:["Harvesting wheat, paddy, and barley","Cutting standing cereal crops quickly and uniformly","Depositing cut crop in neat windrows","Reducing post-harvest losses due to shattering","Completing harvest before rains during Rabi season"],specs:"Cutting width: 4–7 ft | Type: Self-propelled / Tractor-mounted | Crop: Wheat, Paddy, Maize, Soybean"},
+  {id:9,name:"Mulcher",category:"tool",img:"mulcher.jpg",buyPrice:"₹1,20,000 – ₹3,00,000",buyMin:120000,rentPrice:"₹1,500 – ₹3,000 / day",rentMin:1500,about:"A mulcher shreds crop residue over the field — eco-friendly alternative to stubble burning.",uses:["Shredding paddy and wheat stubble instead of burning","Mulching orchards and vineyards","Controlling weeds by shredding before seeding","Improving soil moisture retention","Adding organic matter back into the soil"],specs:"Working width: 4–8 ft | Tractor req.: 45–80 HP | Blades: Hammer / Y-type | Depth: Surface"},
+  {id:10,name:"Thresher",category:"tool",img:"thresher.jpg",buyPrice:"₹50,000 – ₹2,00,000",buyMin:50000,rentPrice:"₹900 – ₹2,000 / day",rentMin:900,about:"A thresher separates grain from the harvested crop through mechanical beating, replacing laborious manual threshing.",uses:["Threshing wheat, paddy, sorghum, and pulses","Separating grain from stalks quickly","Cleaning and winnowing grain in one operation","Reducing post-harvest grain losses","Processing large volumes of crop within short time"],specs:"Power: 5–15 HP / PTO | Capacity: 500–2000 kg/hr | Types: Axial flow / Peg type | Crops: Multi-crop"},
+  {id:11,name:"Hand Hoe",category:"tool",img:"handhoe.jpg",buyPrice:"₹300 – ₹1,500",buyMin:300,rentPrice:"₹20 – ₹50 / day",rentMin:20,about:"The simplest and most affordable weeding tool, ideal for small plots, kitchen gardens, and inter-row weeding.",uses:["Weeding between crop rows manually","Loosening surface soil to reduce evaporation","Creating small furrows for sowing seeds","Earthing up around plants like potato and sugarcane","Mixing topsoil with fertilizers manually"],specs:"Material: Mild steel blade | Handle: Wood / Fibreglass | Weight: 0.5–1.5 kg | Blade width: 3–6 inches"},
+  {id:12,name:"Sickle",category:"tool",img:"sickle.jpg",buyPrice:"₹100 – ₹500",buyMin:100,rentPrice:"₹15 – ₹30 / day",rentMin:15,about:"A hand-held curved blade tool used for manual harvesting of crops and cutting grass.",uses:["Manual harvesting of paddy, wheat, and grass","Cutting fodder from field bunds and roadsides","Trimming and shaping small shrubs","Harvesting vegetables and legume crops","Cutting sugarcane tops and green manure"],specs:"Blade: Carbon steel / Serrated | Handle: Wood | Blade length: 10–14 inches | Type: Plain / Serrated"},
+  {id:13,name:"Shovel",category:"tool",img:"shovel.jpg",buyPrice:"₹300 – ₹1,000",buyMin:300,rentPrice:"₹20 – ₹60 / day",rentMin:20,about:"A heavy-duty digging and moving tool used for channel digging, manure handling, and dozens of other farm tasks.",uses:["Digging irrigation channels and furrows","Moving manure, compost, and sand","Levelling land and filling pits","Uprooting root crops like cassava and yam","Trench digging for laying pipes or planting"],specs:"Blade: Mild steel / Stainless steel | Handle: Wood / Fibreglass | Types: Flat / Pointed / Square nose"},
+  {id:14,name:"Water Pump",category:"tool",img:"waterpump.jpg",buyPrice:"₹5,000 – ₹40,000",buyMin:5000,rentPrice:"₹250 – ₹700 / day",rentMin:250,about:"Water pumps lift water from wells, rivers, or borewells for field irrigation — available as diesel, electric, or solar powered.",uses:["Irrigating fields during dry spells","Draining waterlogged fields","Filling farm ponds and storage tanks","Supplying water for livestock","Sprinkler and drip system water supply"],specs:"Type: Centrifugal / Submersible | Power: 0.5–10 HP | Flow rate: 500–5000 LPH | Fuel: Electric / Diesel / Solar"},
+  {id:15,name:"Mini Tractor",category:"vehicle",img:"minitractor.jpg",buyPrice:"₹3,00,000 – ₹6,00,000",buyMin:300000,rentPrice:"₹1,200 – ₹2,500 / day",rentMin:1200,about:"A compact, lightweight tractor designed for small and marginal farmers — perfect for orchards, vegetable farms, and hilly areas.",uses:["Tillage and land preparation on small plots","Operating in narrow rows in orchards and vineyards","Light transport of farm produce","Driving small implements like seed drills and sprayers","Inter-cultivation in vegetable and flower farms"],specs:"Power: 15–25 HP | Weight: 600–1200 kg | 4WD option available | Ideal for: <5 acre farms"},
+  {id:16,name:"Rice Transplanter",category:"vehicle",img:"ricetrans.jpg",buyPrice:"₹1,50,000 – ₹4,00,000",buyMin:150000,rentPrice:"₹1,500 – ₹3,500 / day",rentMin:1500,about:"A rice transplanter mechanises the most labour-intensive operation in paddy cultivation — transplanting of seedlings.",uses:["Mechanised transplanting of paddy seedlings","Ensuring uniform row spacing for better yield","Reducing transplanting time by 80%","Cutting dependence on costly farm labour","Improving crop stand uniformity for machine harvest"],specs:"Type: Self-propelled / Ride-on | Rows: 4–8 | Row spacing: 23–33 cm | Seedling type: Mat nursery"},
+  {id:17,name:"Sugarcane Harvester",category:"vehicle",img:"sugarcaneharvester.jpg",buyPrice:"₹75,00,000 – ₹1.5 Crore",buyMin:7500000,rentPrice:"₹15,000 – ₹30,000 / day",rentMin:15000,about:"A massive self-propelled machine that cuts, cleans, and loads sugarcane in a single operation.",uses:["Mechanised harvesting of sugarcane at scale","Chopping cane into billets for mill delivery","Separating leaves and trash from cane","Reducing harvest time from weeks to days","Enabling timely delivery to mills to preserve sugar recovery"],specs:"Power: 250–350 HP | Capacity: 20–40 tonnes/hr | Fuel: Diesel | Row: Single / Double"},
+  {id:18,name:"Baler Machine",category:"vehicle",img:"balermachine.jpg",buyPrice:"₹5,00,000 – ₹15,00,000",buyMin:500000,rentPrice:"₹3,000 – ₹6,000 / day",rentMin:3000,about:"A baler compresses loose crop residue into compact bales for easy storage, transport, and sale.",uses:["Baling paddy and wheat straw for livestock feed","Compressing residue to avoid field burning","Creating bales for biomass energy plants","Reducing storage space for fodder","Commercial straw baling for sale to dairies and paper mills"],specs:"Type: Round / Square baler | Tractor req.: 50–80 HP | Bale weight: 15–35 kg | Twine / Net wrap"},
+  {id:19,name:"Fertilizer Spreader",category:"vehicle",img:"fertilizer.jpg",buyPrice:"₹25,000 – ₹1,20,000",buyMin:25000,rentPrice:"₹500 – ₹1,200 / day",rentMin:500,about:"A fertilizer spreader distributes granular fertilizers and lime uniformly across the field.",uses:["Uniform application of urea, DAP, and MOP","Spreading lime for soil pH correction","Top dressing fertilizer in standing crops","Spreading bio-fertilizers and micronutrients","Reducing fertilizer waste and over-application"],specs:"Type: Centrifugal disc / Pendulum | Capacity: 100–500 kg | Spread width: 5–15 m | Tractor req.: 25–50 HP"},
+  {id:20,name:"Sprayer",category:"tool",img:"sprayer.jpeg",buyPrice:"₹500 – ₹4,000",buyMin:500,rentPrice:"₹50 – ₹150 / day",rentMin:50,about:"A sprayer atomises and applies liquid pesticides, fungicides, herbicides, and foliar fertilizers — the most widely used farm tool in India.",uses:["Applying pesticides and insecticides on crops","Spraying fungicides to control diseases","Herbicide application for weed control","Foliar feeding with micronutrients and growth promoters","Disinfection of farm premises and livestock sheds"],specs:"Type: Knapsack / Battery / Pump | Capacity: 10–16 litres | Pressure: 2–4 bar | Nozzle: Flat fan / Cone"}
+];
+
+// STATE
+let cart = [];
+let curRentProd = null;
+let selSlot = null;
+let selDuration = '1 Day';
+let selPayment = 'UPI / GPay';
+
+const ALL_SLOTS = [
+  '6:00 AM – 8:00 AM','8:00 AM – 10:00 AM','10:00 AM – 12:00 PM',
+  '12:00 PM – 2:00 PM','2:00 PM – 4:00 PM','4:00 PM – 6:00 PM',
+  'Morning Half\n(8AM–1PM)','Afternoon Half\n(1PM–6PM)','Full Day\n(8AM–6PM)'
+];
+const simulatedBooked = [1, 4];
+
+// RENDER
+function renderCards(items) {
+  const grid = document.getElementById('grid');
+  const nr = document.getElementById('no-results');
+  grid.innerHTML = '';
+  if (!items.length) { nr.style.display='block'; document.getElementById('result-count').textContent=''; return; }
+  nr.style.display='none';
+  document.getElementById('result-count').textContent = `Showing ${items.length} item${items.length!==1?'s':''}`;
+  items.forEach((p,i) => {
+    const c = document.createElement('div');
+    c.className='card'; c.style.animationDelay=`${i*0.05}s`;
+    c.innerHTML=`
+      <div class="card-img-wrap">
+        <img src="${p.img}" alt="${p.name}" onerror="this.src='https://placehold.co/400x200/e8f5e9/1b5e20?text=${encodeURIComponent(p.name)}'">
+        <span class="cat-badge ${p.category}">${p.category==='vehicle'?'🚛 Vehicle':'🔧 Tool'}</span>
+        <span class="rent-tag">🏷️ Rent Available</span>
+      </div>
+      <div class="card-body">
+        <h3>${p.name}</h3>
+        <p class="card-desc">${p.uses[0]}</p>
+        <div class="price-row"><span class="buy-price">Buy: ${p.buyPrice}</span></div>
+        <div class="price-row"><span class="rent-price">Rent: ${p.rentPrice}</span></div>
+        <div class="card-actions">
+          <button class="btn-details" onclick="openDetail(${p.id})">📋 Details</button>
+          <button class="btn-cart" onclick="addToCart(${p.id},'buy')">🛒 Buy</button>
+          <button class="btn-rent" onclick="openRent(${p.id})">📅 Book Rental Slot</button>
+        </div>
+      </div>`;
+    grid.appendChild(c);
+  });
+}
+
+function filterItems() {
+  const s=document.getElementById('search').value.toLowerCase();
+  const cat=document.getElementById('category').value;
+  const sort=document.getElementById('sortby').value;
+  let f=products.filter(p=>(p.name.toLowerCase().includes(s)||p.about.toLowerCase().includes(s)||p.uses.some(u=>u.toLowerCase().includes(s)))&&(cat==='all'||p.category===cat));
+  if(sort==='price-low') f.sort((a,b)=>a.buyMin-b.buyMin);
+  if(sort==='price-high') f.sort((a,b)=>b.buyMin-a.buyMin);
+  renderCards(f);
+}
+
+// DETAIL MODAL
+function openDetail(id) {
+  const p=products.find(x=>x.id===id);
+  document.getElementById('m-img').src=p.img;
+  document.getElementById('m-img').onerror=function(){this.src=`https://placehold.co/700x240/e8f5e9/1b5e20?text=${encodeURIComponent(p.name)}`;};
+  document.getElementById('m-name').textContent=p.name;
+  document.getElementById('m-cat').textContent=p.category==='vehicle'?'🚛 Vehicle':'🔧 Tool';
+  document.getElementById('m-about').textContent=p.about;
+  document.getElementById('m-buy-price').textContent=p.buyPrice;
+  document.getElementById('m-rent-price').textContent=p.rentPrice;
+  document.getElementById('m-specs').textContent=p.specs;
+  document.getElementById('m-uses').innerHTML=p.uses.map(u=>`<li>${u}</li>`).join('');
+  document.getElementById('m-buy-btn').onclick=()=>{addToCart(id,'buy');closeModal('overlay');};
+  document.getElementById('m-rent-btn').onclick=()=>{closeModal('overlay');openRent(id);};
+  openOv('overlay');
+}
+
+// RENT MODAL
+function openRent(id) {
+  curRentProd=products.find(x=>x.id===id);
+  document.getElementById('rent-equip-name').textContent='📦 '+curRentProd.name+' — '+curRentProd.rentPrice;
+  selSlot=null; selDuration='1 Day';
+  document.querySelectorAll('.dur-btn').forEach((b,i)=>b.classList.toggle('selected',i===0));
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('rent-date').min=today;
+  document.getElementById('rent-date').value='';
+  document.getElementById('slot-grid').innerHTML='<div style="color:var(--gray);font-size:0.88rem;grid-column:1/-1;padding:10px;">👆 Please select a date first to see available slots.</div>';
+  document.getElementById('rent-summary').style.display='none';
+  ['rent-name','rent-phone','rent-location','rent-notes'].forEach(id=>{document.getElementById(id).value='';});
+  openOv('rent-overlay');
+}
+
+function updateSlots() {
+  const date=document.getElementById('rent-date').value;
+  if(!date) return;
+  const grid=document.getElementById('slot-grid');
+  grid.innerHTML=ALL_SLOTS.map((s,i)=>{
+    const booked=simulatedBooked.includes(i);
+    return `<button class="slot-btn${booked?' booked':''}" ${booked?'disabled':''} onclick="selSlotFn(this,'${s.replace(/\n/g,' ')}')">${booked?'❌ ':''}<span style="white-space:pre-line">${s}</span></button>`;
+  }).join('');
+  selSlot=null; updateSummary();
+}
+
+function selSlotFn(btn,slot) {
+  document.querySelectorAll('#slot-grid .slot-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected'); selSlot=slot; updateSummary();
+}
+
+function selDur(btn,dur) {
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected'); selDuration=dur; updateSummary();
+}
+
+function updateSummary() {
+  const date=document.getElementById('rent-date').value;
+  const s=document.getElementById('rent-summary');
+  if(date && selSlot && curRentProd) {
+    s.style.display='block';
+    document.getElementById('rs-equip').textContent=curRentProd.name;
+    document.getElementById('rs-date').textContent=fmtDate(date);
+    document.getElementById('rs-slot').textContent=selSlot;
+    document.getElementById('rs-dur').textContent=selDuration;
+    document.getElementById('rs-price').textContent=curRentProd.rentPrice;
+  } else { s.style.display='none'; }
+}
+
+function fmtDate(d) {
+  const [y,m,day]=d.split('-');
+  return `${day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}`;
+}
+
+async function confirmRental() {
+  const name=document.getElementById('rent-name').value.trim();
+  const phone=document.getElementById('rent-phone').value.trim();
+  const loc=document.getElementById('rent-location').value.trim();
+  const date=document.getElementById('rent-date').value;
+  const notes=document.getElementById('rent-notes').value.trim();
+  if(!name){showToast('⚠️ Please enter your name','error');return;}
+  if(phone.length!==10){showToast('⚠️ Enter a valid 10-digit mobile number','error');return;}
+  if(!loc){showToast('⚠️ Please enter your village / district','error');return;}
+  if(!date){showToast('⚠️ Please select a start date','error');return;}
+  if(!selSlot){showToast('⚠️ Please select a time slot','error');return;}
+
+  const ref='KM-R-'+Date.now().toString().slice(-6);
+
+  const result = await submitToSheets({
+    type: 'rental',
+    bookingId: ref,
+    name, phone, location: loc,
+    equipment: curRentProd.name,
+    date: fmtDate(date),
+    slot: selSlot,
+    duration: selDuration,
+    rate: curRentProd.rentPrice,
+    notes
+  }, 'rent-submit-btn','rent-spinner','rent-btn-text','✅ Confirm Rental Booking');
+
+  if(result.status==='success') {
+    closeModal('rent-overlay');
+    document.getElementById('success-body').innerHTML=`
+      <div class="s-icon">📅</div>
+      <h2>Rental Confirmed!</h2>
+      <p>Booking for <strong>${curRentProd.name}</strong> is confirmed, <strong>${name}</strong>!</p>
+      <div class="ref">Booking ID: ${ref}</div>
+      <p><strong>Date:</strong> ${fmtDate(date)}<br><strong>Time Slot:</strong> ${selSlot}<br><strong>Duration:</strong> ${selDuration}<br><strong>Rate:</strong> ${curRentProd.rentPrice}</p>
+      <p style="margin-top:12px;">✅ Your details have been <strong>saved to our Google Sheets</strong>.<br>Our team will call <strong>${phone}</strong> within <strong>2 hours</strong> to confirm delivery to <strong>${loc}</strong>.</p>
+      <p style="margin-top:10px;font-size:0.85rem;color:#999;">Urgent? <a href="tel:+919876543210" style="color:var(--green);font-weight:800;">+91 98765 43210</a></p>
+      <button class="close-btn" onclick="closeModal('success-overlay')">✅ Done</button>`;
+    openOv('success-overlay');
+    showToast('✅ Rental booked & saved to Google Sheets!','success');
+  } else {
+    showToast('❌ Could not save. Check your internet or Sheet URL.','error');
+  }
+}
+
+// CART
+function addToCart(id,type) {
+  const p=products.find(x=>x.id===id);
+  const cid=`${id}-${type}`;
+  if(cart.find(c=>c.id===cid)){showToast(`ℹ️ ${p.name} already in cart`,'info');return;}
+  cart.push({id:cid,pid:id,name:p.name,img:p.img,type:type==='buy'?'🛒 Buying':'📅 Renting',price:type==='buy'?p.buyPrice:p.rentPrice});
+  updateCartUI(); showToast(`✅ ${p.name} added to cart`,'success');
+}
+function removeFromCart(cid){cart=cart.filter(c=>c.id!==cid);updateCartUI();}
+function updateCartUI() {
+  document.getElementById('cart-count').textContent=cart.length;
+  const con=document.getElementById('cart-items');
+  if(!cart.length){con.innerHTML='<div class="cart-empty"><div>🛒</div><p>Your cart is empty.<br>Browse and add equipment!</p></div>';document.getElementById('cart-total-amt').textContent='0 items';return;}
+  con.innerHTML=cart.map(c=>`<div class="cart-item"><img src="${c.img}" alt="${c.name}" onerror="this.src='https://placehold.co/60x60/e8f5e9/1b5e20?text=${encodeURIComponent(c.name)}'"><div class="ci-info"><div class="ci-name">${c.name}</div><div class="ci-type">${c.type}</div><div class="ci-price">${c.price}</div></div><button class="ci-remove" onclick="removeFromCart('${c.id}')">🗑️</button></div>`).join('');
+  document.getElementById('cart-total-amt').textContent=`${cart.length} item${cart.length>1?'s':''}`;
+}
+function openCart(){document.getElementById('cart-panel').classList.add('open');document.getElementById('cart-backdrop').classList.add('active');document.body.style.overflow='hidden';}
+function closeCart(){document.getElementById('cart-panel').classList.remove('open');document.getElementById('cart-backdrop').classList.remove('active');document.body.style.overflow='';}
+
+// CHECKOUT
+function openCheckout() {
+  if(!cart.length){showToast('⚠️ Cart is empty!','error');return;}
+  closeCart();
+  document.getElementById('co-items-list').innerHTML=cart.map(c=>`<div class="co-item"><span class="ci-label">${c.name} ${c.type}</span><span class="ci-val">${c.price}</span></div>`).join('');
+  ['co-name','co-phone','co-email','co-address','co-notes'].forEach(id=>{document.getElementById(id).value='';});
+  selPayment='UPI / GPay';
+  document.querySelectorAll('.pay-opt').forEach((b,i)=>b.classList.toggle('selected',i===0));
+  openOv('checkout-overlay');
+}
+function selPay(el,val){document.querySelectorAll('.pay-opt').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');selPayment=val;}
+
+async function placeOrder() {
+  const name=document.getElementById('co-name').value.trim();
+  const phone=document.getElementById('co-phone').value.trim();
+  const email=document.getElementById('co-email').value.trim();
+  const addr=document.getElementById('co-address').value.trim();
+  const notes=document.getElementById('co-notes').value.trim();
+  if(!name){showToast('⚠️ Please enter your name','error');return;}
+  if(phone.length!==10){showToast('⚠️ Enter a valid 10-digit mobile number','error');return;}
+  if(!addr){showToast('⚠️ Please enter your delivery address','error');return;}
+
+  const ref='KM-B-'+Date.now().toString().slice(-6);
+  const items=cart.map(c=>`${c.name} (${c.type.replace(/[🛒📅]/g,'').trim()})`).join(', ');
+
+  const result = await submitToSheets({
+    type: 'order',
+    orderId: ref,
+    name, phone, email, address: addr,
+    payment: selPayment,
+    items, notes
+  }, 'order-submit-btn','order-spinner','order-btn-text','🚀 Place Order — Save to Google Sheets');
+
+  if(result.status==='success') {
+    closeModal('checkout-overlay');
+    document.getElementById('success-body').innerHTML=`
+      <div class="s-icon">🎉</div>
+      <h2>Order Placed!</h2>
+      <p>Thank you, <strong>${name}</strong>! Your order is confirmed.</p>
+      <div class="ref">Order ID: ${ref}</div>
+      <p><strong>Items:</strong> ${items}</p>
+      <p style="margin-top:6px;"><strong>Payment:</strong> ${selPayment}</p>
+      <p style="margin-top:12px;">✅ Your details have been <strong>saved to our Google Sheets</strong>.<br>We'll call <strong>${phone}</strong> within <strong>24 hours</strong> to confirm delivery.</p>
+      <p style="margin-top:10px;font-size:0.85rem;color:#999;"><a href="mailto:support@kisanmart.in" style="color:var(--green);font-weight:800;">support@kisanmart.in</a></p>
+      <button class="close-btn" onclick="closeModal('success-overlay')">✅ Continue Shopping</button>`;
+    cart=[]; updateCartUI();
+    openOv('success-overlay');
+    showToast('✅ Order placed & saved to Google Sheets!','success');
+  } else {
+    showToast('❌ Could not save. Check your internet or Sheet URL.','error');
+  }
+}
+
+// CONTACT QUERY
+async function sendQuery() {
+  const name=document.getElementById('q-name').value.trim();
+  const phone=document.getElementById('q-phone').value.trim();
+  const email=document.getElementById('q-email').value.trim();
+  const msg=document.getElementById('q-message').value.trim();
+  const subject=document.getElementById('q-subject').value;
+  if(!name){showToast('⚠️ Please enter your name','error');return;}
+  if(phone.length!==10){showToast('⚠️ Enter a valid 10-digit mobile number','error');return;}
+  if(!email||!email.includes('@')){showToast('⚠️ Please enter a valid email address','error');return;}
+  if(!msg){showToast('⚠️ Please write your message','error');return;}
+
+  const result = await submitToSheets({
+    type: 'contact',
+    name, phone, email, subject, message: msg
+  }, 'contact-submit-btn','contact-spinner','contact-btn-text','📨 Send Message — Save to Google Sheets');
+
+  if(result.status==='success') {
+    ['q-name','q-phone','q-email','q-message'].forEach(id=>{document.getElementById(id).value='';});
+    showToast('✅ Message saved! We reply within 2–4 hours.','success');
+  } else {
+    showToast('❌ Could not save. Check your internet or Sheet URL.','error');
+  }
+}
+
+// HELPERS
+function scrollToContact(){document.getElementById('contact-section').scrollIntoView({behavior:'smooth'});}
+function openOv(id){document.getElementById(id).classList.add('active');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('active');document.body.style.overflow='';}
+
+function showToast(msg, type='success') {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+renderCards(products);
+updateCartUI();
+</script>
+</body>
+</html>

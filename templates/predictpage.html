@@ -1,0 +1,2268 @@
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crop Predictor — AgroSense</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-deep:   #0a3d1f;
+      --green-mid:    #166534;
+      --green-fresh:  #22c55e;
+      --green-light:  #86efac;
+      --green-pale:   #dcfce7;
+      --white:        #ffffff;
+      --glass:        rgba(255,255,255,0.12);
+      --glass-border: rgba(255,255,255,0.22);
+      --text-dark:    #0f2d14;
+      --text-mid:     #1a4a26;
+      --text-soft:    #4b7a59;
+      --shadow-lg:    0 24px 64px rgba(10,61,31,0.28);
+      --radius:       16px;
+      --radius-sm:    10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: var(--green-deep);
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 50%, rgba(34,197,94,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 85% 20%, rgba(22,101,52,0.35) 0%, transparent 55%),
+        linear-gradient(160deg, #0a3d1f 0%, #0d2d18 40%, #071a0e 100%);
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      z-index: 0; pointer-events: none;
+    }
+    .page-wrapper {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 480px 1fr;
+      min-height: 100vh;
+      padding: 0 24px;
+    }
+    .header {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 8px;
+      border-bottom: 1px solid rgba(34,197,94,0.15);
+      margin-bottom: 32px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--green-fresh), var(--green-mid));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+    }
+    .logo-text { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--white); letter-spacing: -0.3px; }
+    .logo-text span { color: var(--green-fresh); }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 50px; color: rgba(255,255,255,0.8);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px);
+    }
+    .back-btn:hover { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); color: var(--white); transform: translateX(-2px); }
+    .side-panel {
+      grid-column: 1; padding: 0 32px 48px 0;
+      display: flex; flex-direction: column; justify-content: center; gap: 32px;
+    }
+    .hero-text { animation: fadeSlideUp 0.8s ease both; }
+    .hero-text h1 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 3vw, 42px); color: var(--white); line-height: 1.2; margin-bottom: 14px; }
+    .hero-text h1 em { color: var(--green-fresh); font-style: italic; }
+    .hero-text p { color: rgba(255,255,255,0.55); font-size: 14px; line-height: 1.7; max-width: 280px; }
+    .stat-cards { display: flex; flex-direction: column; gap: 12px; animation: fadeSlideUp 0.9s ease 0.1s both; }
+    .stat-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm); padding: 14px 18px;
+      backdrop-filter: blur(8px); display: flex; align-items: center; gap: 14px;
+    }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .stat-icon.green { background: rgba(34,197,94,0.2); }
+    .stat-icon.yellow { background: rgba(234,179,8,0.2); }
+    .stat-icon.blue { background: rgba(59,130,246,0.2); }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 15px; color: var(--white); font-weight: 600; margin-top: 2px; }
+    .form-card {
+      grid-column: 2;
+      background: rgba(255,255,255,0.97);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(34,197,94,0.12);
+      overflow: hidden; display: flex; flex-direction: column;
+      align-self: start; animation: fadeSlideUp 0.7s ease both; margin-bottom: 48px;
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+      padding: 28px 32px 24px; position: relative; overflow: hidden;
+    }
+    .card-header::before {
+      content: '🌾'; position: absolute; right: -10px; top: -16px;
+      font-size: 90px; opacity: 0.12; transform: rotate(-15deg); pointer-events: none;
+    }
+    .card-header h2 { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--white); margin-bottom: 6px; }
+    .card-header p { color: rgba(255,255,255,0.6); font-size: 13px; }
+    .steps {
+      display: flex; padding: 0 32px;
+      border-bottom: 1px solid #f0f0f0; background: #fafafa;
+    }
+    .step {
+      flex: 1; padding: 14px 8px; text-align: center;
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #aaa; border-bottom: 2px solid transparent; cursor: default; transition: 0.2s;
+    }
+    .step.active { color: var(--green-mid); border-bottom-color: var(--green-fresh); }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #e5e7eb; color: #888; font-size: 10px; margin-right: 6px; transition: 0.2s;
+    }
+    .step.active .step-num { background: var(--green-fresh); color: white; }
+    .card-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 0; }
+    .section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-soft); margin-bottom: 10px; margin-top: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label:first-child { margin-top: 0; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, #e5e7eb, transparent); }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .input-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .input-row.single { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 11px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field select {
+      padding: 10px 13px; border: 1.5px solid #e5e7eb;
+      border-radius: var(--radius-sm); font-size: 13px; font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark); background: #f9fafb; transition: all 0.2s; outline: none;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--green-fresh); background: white;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+    }
+    .field input::placeholder { color: #bbb; }
+    .field input.has-value { background: white; border-color: #d1fae5; }
+    .location-strip {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0; border-radius: var(--radius-sm);
+      padding: 14px 16px; margin-bottom: 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end;
+    }
+    .autofill-btn {
+      grid-column: 1 / -1; padding: 9px;
+      background: linear-gradient(135deg, var(--green-fresh), #16a34a);
+      border: none; border-radius: 8px; color: white; font-size: 12px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.2s; letter-spacing: 0.3px;
+    }
+    .autofill-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,0.4); }
+    .autofill-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+    .submit-area { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .btn-predict {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--green-fresh) 0%, #16a34a 60%, var(--green-mid) 100%);
+      border: none; border-radius: 12px; color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: all 0.25s; box-shadow: 0 6px 20px rgba(34,197,94,0.35); letter-spacing: 0.2px;
+    }
+    .btn-predict:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(34,197,94,0.45); }
+    .btn-predict:active { transform: translateY(0); }
+    .btn-predict:disabled { background: #d1d5db; box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn-reset {
+      width: 100%; padding: 10px; background: transparent;
+      border: 1.5px solid #e5e7eb; border-radius: 10px; color: #888;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+    #result { margin-top: 16px; border-radius: 12px; overflow: hidden; font-size: 14px; }
+
+    /* ── WARNING BANNER ── */
+    .result-warning {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 10px;
+      font-size: 12px; color: #92400e; display: flex; gap: 8px; align-items: flex-start;
+    }
+    .result-warning span { flex-shrink: 0; }
+
+    /* ── RESULT SUCCESS ── */
+    .result-success {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #86efac; padding: 20px;
+    }
+    .crop-main { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .crop-badge {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--green-fresh), #16a34a);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+    }
+    .crop-info { flex: 1; }
+    .crop-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green-deep); }
+    .crop-sub { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+    /* Confidence badge */
+    .confidence-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .conf-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .conf-high   { background: #dcfce7; color: #166534; }
+    .conf-moderate { background: #fef3c7; color: #92400e; }
+    .conf-low    { background: #fee2e2; color: #991b1b; }
+    .conf-dot    { width: 6px; height: 6px; border-radius: 50%; }
+    .conf-high   .conf-dot { background: #16a34a; }
+    .conf-moderate .conf-dot { background: #d97706; }
+    .conf-low    .conf-dot { background: #dc2626; }
+    /* Confidence bar */
+    .conf-bar-wrap { flex: 1; height: 4px; background: #d1fae5; border-radius: 2px; }
+    .conf-bar { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    .conf-bar.high     { background: #22c55e; }
+    .conf-bar.moderate { background: #f59e0b; }
+    .conf-bar.low      { background: #ef4444; }
+
+    .alt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-soft); margin-bottom: 8px; }
+    .alt-list { display: flex; flex-direction: column; gap: 6px; }
+    .alt-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.7); border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--text-dark);
+    }
+    .alt-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: #d1fae5; border-radius: 2px; }
+    .alt-bar { height: 100%; background: var(--green-fresh); border-radius: 2px; transition: width 0.5s ease; }
+    .alt-pct { font-size: 12px; color: var(--text-soft); font-weight: 600; }
+
+    .result-error { background: #fef2f2; border: 1px solid #fecaca; padding: 16px 20px; color: #991b1b; border-radius: 12px; }
+    .result-loading { background: #fffbeb; border: 1px solid #fed7aa; padding: 16px 20px; color: #92400e; display: flex; align-items: center; gap: 10px; border-radius: 12px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(146,64,14,0.3); border-top-color: #92400e; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .right-panel {
+      grid-column: 3; padding: 0 0 48px 32px;
+      display: flex; flex-direction: column; justify-content: center; gap: 16px;
+    }
+    .tip-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 18px 20px; backdrop-filter: blur(10px); animation: fadeSlideUp 1s ease 0.2s both; }
+    .tip-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--green-fresh); margin-bottom: 10px; }
+    .tip-card p { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+    .tip-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .tip-list li { font-size: 12px; color: rgba(255,255,255,0.55); padding-left: 16px; position: relative; }
+    .tip-list li::before { content: '→'; position: absolute; left: 0; color: var(--green-fresh); font-size: 10px; top: 1px; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1100px) { .page-wrapper { grid-template-columns: 1fr 460px; } .right-panel { display: none; } .side-panel { padding-right: 24px; } }
+    @media (max-width: 780px) {
+      .page-wrapper { grid-template-columns: 1fr; padding: 0 16px; }
+      .side-panel { display: none; }
+      .form-card { margin-bottom: 32px; }
+      .header { padding: 16px 0; }
+      .card-body { padding: 20px; }
+      .card-header { padding: 22px 20px 18px; }
+      .steps { padding: 0 20px; }
+      .input-row.three { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <header class="header">
+    <a class="logo" href="index.html">
+      <div class="logo-icon">🌿</div>
+      <span class="logo-text">Agro<span>Sense</span></span>
+    </a>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back to Home</button>
+  </header>
+
+  <aside class="side-panel">
+    <div class="hero-text">
+      <h1>Smart <em>Crop</em><br/>Prediction</h1>
+      <p>Enter your soil parameters and location to get AI-powered crop recommendations tailored to your field conditions.</p>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-icon green">🌱</div>
+        <div><div class="stat-label">Crops Supported</div><div class="stat-val">22 Crop Types</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow">📍</div>
+        <div><div class="stat-label">Regions Covered</div><div class="stat-val">38 Tamil Nadu Districts</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🌦️</div>
+        <div><div class="stat-label">Data Source</div><div class="stat-val">Live Weather + Soil DB</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="form-card">
+      <div class="card-header">
+        <h2>Crop Predictor 🌾</h2>
+        <p>Fill in your soil &amp; environment data to get recommendations</p>
+      </div>
+      <div class="steps">
+        <div class="step active" id="step1"><span class="step-num">1</span>Location</div>
+        <div class="step" id="step2"><span class="step-num">2</span>Soil NPK</div>
+        <div class="step" id="step3"><span class="step-num">3</span>Climate</div>
+      </div>
+      <div class="card-body">
+
+        <div class="section-label">Location &amp; Crop Target</div>
+        <div class="input-row">
+          <div class="field">
+            <label>Target Crop</label>
+            <select id="crop">
+              <option value="">— Select Crop —</option>
+              <option value="rice">🌾 Rice</option>
+              <option value="maize">🌽 Maize</option>
+              <option value="chickpea">🟡 Chickpea</option>
+              <option value="kidneybeans">🫘 Kidney Beans</option>
+              <option value="pigeonpeas">🌿 Pigeon Peas</option>
+              <option value="mothbeans">🌱 Moth Beans</option>
+              <option value="mungbean">🫛 Mung Bean</option>
+              <option value="blackgram">⚫ Black Gram</option>
+              <option value="lentil">🟤 Lentil</option>
+              <option value="pomegranate">🍎 Pomegranate</option>
+              <option value="banana">🍌 Banana</option>
+              <option value="mango">🥭 Mango</option>
+              <option value="grapes">🍇 Grapes</option>
+              <option value="watermelon">🍉 Watermelon</option>
+              <option value="muskmelon">🍈 Muskmelon</option>
+              <option value="apple">🍏 Apple</option>
+              <option value="orange">🍊 Orange</option>
+              <option value="papaya">🍑 Papaya</option>
+              <option value="coconut">🥥 Coconut</option>
+              <option value="cotton">🤍 Cotton</option>
+              <option value="jute">🌿 Jute</option>
+              <option value="coffee">☕ Coffee</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>District</label>
+            <select id="district" required>
+              <option value="">— Select District —</option>
+              <option value="ariyalur">Ariyalur</option>
+              <option value="chengalpattu">Chengalpattu</option>
+              <option value="chennai">Chennai</option>
+              <option value="coimbatore">Coimbatore</option>
+              <option value="cuddalore">Cuddalore</option>
+              <option value="dharmapuri">Dharmapuri</option>
+              <option value="dindigul">Dindigul</option>
+              <option value="erode">Erode</option>
+              <option value="kallakurichi">Kallakurichi</option>
+              <option value="kancheepuram">Kancheepuram</option>
+              <option value="kanyakumari">Kanyakumari</option>
+              <option value="karur">Karur</option>
+              <option value="krishnagiri">Krishnagiri</option>
+              <option value="madurai">Madurai</option>
+              <option value="mayiladuthurai">Mayiladuthurai</option>
+              <option value="nagapattinam">Nagapattinam</option>
+              <option value="namakkal">Namakkal</option>
+              <option value="nilgiris">Nilgiris (Ooty)</option>
+              <option value="perambalur">Perambalur</option>
+              <option value="pudukkottai">Pudukkottai</option>
+              <option value="ramanathapuram">Ramanathapuram</option>
+              <option value="ranipet">Ranipet</option>
+              <option value="salem">Salem</option>
+              <option value="sivaganga">Sivaganga</option>
+              <option value="tenkasi">Tenkasi</option>
+              <option value="thanjavur">Thanjavur</option>
+              <option value="theni">Theni</option>
+              <option value="thoothukudi">Thoothukudi</option>
+              <option value="tiruchirappalli">Tiruchirappalli</option>
+              <option value="tirunelveli">Tirunelveli</option>
+              <option value="tirupathur">Tirupathur</option>
+              <option value="tiruppur">Tiruppur</option>
+              <option value="tiruvallur">Tiruvallur</option>
+              <option value="tiruvannamalai">Tiruvannamalai</option>
+              <option value="tiruvarur">Tiruvarur</option>
+              <option value="vellore">Vellore</option>
+              <option value="viluppuram">Viluppuram</option>
+              <option value="virudhunagar">Virudhunagar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="location-strip" id="areaGroup" style="display:none;">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Area / Locality</label>
+            <select id="area"></select>
+          </div>
+          <button class="autofill-btn" onclick="callweather()">
+            🌦️ Auto-fill Weather &amp; Soil Data
+          </button>
+        </div>
+
+        <div class="section-label">Soil Nutrients</div>
+        <div class="input-row three">
+          <div class="field"><label>Nitrogen (N)</label><input id="N" type="number" placeholder="e.g. 90" step="0.01"/></div>
+          <div class="field"><label>Phosphorus (P)</label><input id="P" type="number" placeholder="e.g. 42" step="0.01"/></div>
+          <div class="field"><label>Potassium (K)</label><input id="K" type="number" placeholder="e.g. 43" step="0.01"/></div>
+        </div>
+        <div class="input-row single">
+          <div class="field"><label>Soil pH</label><input id="ph" type="number" placeholder="e.g. 6.5" step="0.01"/></div>
+        </div>
+
+        <div class="section-label">Climate Conditions</div>
+        <div class="input-row">
+          <div class="field"><label>Temperature (°C)</label><input id="temperature" type="number" placeholder="e.g. 20.8" step="0.01"/></div>
+          <div class="field"><label>Humidity (%)</label><input id="humidity" type="number" placeholder="e.g. 82" step="0.01"/></div>
+        </div>
+        <div class="input-row single">
+          <div class="field"><label>Rainfall (mm)</label><input id="rainfall" type="number" placeholder="e.g. 202" step="0.01"/></div>
+        </div>
+
+        <div class="submit-area">
+          <button class="btn-predict" id="submitBtn" onclick="submitForm()">🌾 Predict Best Crop</button>
+          <button class="btn-reset" onclick="location.reload()">↺ Reset All Fields</button>
+        </div>
+
+        <div id="result"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div class="tip-card">
+      <h4>💡 How It Works</h4>
+      <ul class="tip-list">
+        <li>Select your district and area for location-based data</li>
+        <li>Use auto-fill to pull live weather &amp; soil values</li>
+        <li>Adjust values if you have lab-tested soil data</li>
+        <li>Click Predict to get AI recommendations</li>
+      </ul>
+    </div>
+    <div class="tip-card">
+      <h4>📊 Key Parameters</h4>
+      <p>N-P-K values (mg/kg), soil pH (4–9 ideal), temperature, humidity %, and annual rainfall in mm determine crop suitability.</p>
+    </div>
+    <div class="tip-card">
+      <h4>🌡️ Ideal Ranges</h4>
+      <ul class="tip-list">
+        <li>pH: 5.5 – 7.5 for most crops</li>
+        <li>Humidity: 50 – 90% typical</li>
+        <li>Rainfall: 500 – 2500 mm/yr</li>
+      </ul>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURATION
+═══════════════════════════════════════════════════════ */
+const API_KEY      = "5f1938cd229d207faa2b747752ceb273";
+const BACKEND_URL  = "http://127.0.0.1:8003";
+
+/* ── Districts where coffee is a valid prediction ── */
+const COFFEE_DISTRICTS = new Set(["nilgiris"]);
+
+/* ── Crop emoji map ── */
+const cropEmoji = {
+  rice:'🌾', maize:'🌽', chickpea:'🟡', kidneybeans:'🫘', pigeonpeas:'🌿',
+  mothbeans:'🌱', mungbean:'🫛', blackgram:'⚫', lentil:'🟤', pomegranate:'🍎',
+  banana:'🍌', mango:'🥭', grapes:'🍇', watermelon:'🍉', muskmelon:'🍈',
+  apple:'🍏', orange:'🍊', papaya:'🍑', coconut:'🥥', cotton:'🤍', jute:'🌿', coffee:'☕'
+};
+
+/* ═══════════════════════════════════════════════════════
+   SOIL DATA  — all rainfall values capped below 1400mm
+   (coffee training data starts at 1600mm, so no overlap)
+═══════════════════════════════════════════════════════ */
+const soilData = {
+  // ARIYALUR
+  ariyalur:{ n:118,p:44,k:62,ph:7.2,rainfall:820 }, andimadam:{ n:115,p:42,k:60,ph:7.1,rainfall:800 },
+  jayankondam:{ n:120,p:45,k:63,ph:7.3,rainfall:840 }, sendurai:{ n:112,p:40,k:58,ph:7.0,rainfall:780 },
+  tpalur:{ n:110,p:39,k:56,ph:7.2,rainfall:770 }, udayarpalayam:{ n:116,p:43,k:61,ph:7.1,rainfall:810 },
+  // CHENGALPATTU
+  chengalpattu:{ n:108,p:40,k:58,ph:6.9,rainfall:950 }, madurantakam:{ n:112,p:42,k:60,ph:7.0,rainfall:920 },
+  cheyyur:{ n:105,p:38,k:55,ph:7.1,rainfall:980 }, thiruporur:{ n:110,p:41,k:59,ph:6.8,rainfall:960 },
+  kelambakkam:{ n:108,p:40,k:57,ph:6.9,rainfall:950 }, vandalur:{ n:106,p:39,k:56,ph:7.0,rainfall:930 },
+  guduvancheri:{ n:109,p:41,k:58,ph:6.9,rainfall:940 }, urapakkam:{ n:107,p:40,k:57,ph:7.0,rainfall:920 },
+  padappai:{ n:110,p:41,k:59,ph:6.9,rainfall:910 }, kalpakkam:{ n:100,p:36,k:52,ph:7.2,rainfall:990 },
+  maraimalainagar:{ n:108,p:40,k:58,ph:6.9,rainfall:945 }, singaperumalkoil:{ n:111,p:42,k:60,ph:7.0,rainfall:930 },
+  tirukalukundram:{ n:106,p:39,k:56,ph:7.1,rainfall:960 },
+  // CHENNAI
+  adyar:{ n:102,p:38,k:55,ph:6.7,rainfall:880 }, annanagar:{ n:108,p:40,k:62,ph:7.0,rainfall:820 },
+  ambattur:{ n:112,p:41,k:59,ph:6.9,rainfall:840 }, avadi:{ n:105,p:39,k:54,ph:7.2,rainfall:800 },
+  bestanagar:{ n:98,p:35,k:50,ph:6.8,rainfall:900 }, chromepet:{ n:114,p:43,k:60,ph:6.9,rainfall:870 },
+  guindy:{ n:100,p:37,k:50,ph:6.8,rainfall:850 }, mylapore:{ n:90,p:34,k:46,ph:7.0,rainfall:820 },
+  omr:{ n:108,p:40,k:57,ph:6.8,rainfall:890 }, perambur:{ n:115,p:42,k:58,ph:6.8,rainfall:840 },
+  sholinganallur:{ n:118,p:45,k:63,ph:6.6,rainfall:900 }, tambaram:{ n:120,p:46,k:60,ph:6.9,rainfall:870 },
+  tondiarpet:{ n:95,p:35,k:48,ph:7.3,rainfall:800 }, velachery:{ n:110,p:44,k:57,ph:6.8,rainfall:860 },
+  ennore:{ n:95,p:35,k:48,ph:7.3,rainfall:810 }, manali:{ n:96,p:36,k:49,ph:7.2,rainfall:805 },
+  madhavaram:{ n:110,p:41,k:58,ph:6.9,rainfall:830 }, kolathur:{ n:108,p:40,k:57,ph:6.9,rainfall:825 },
+  nungambakkam:{ n:105,p:38,k:55,ph:6.9,rainfall:840 }, egmore:{ n:100,p:36,k:52,ph:7.0,rainfall:830 },
+  kodambakkam:{ n:104,p:38,k:54,ph:6.9,rainfall:845 }, kilpauk:{ n:102,p:37,k:52,ph:6.9,rainfall:835 },
+  tnagar:{ n:103,p:38,k:53,ph:6.9,rainfall:840 }, vadapalani:{ n:106,p:39,k:55,ph:6.9,rainfall:845 },
+  koyambedu:{ n:105,p:38,k:54,ph:7.0,rainfall:840 }, saidapet:{ n:102,p:37,k:52,ph:6.9,rainfall:842 },
+  taramani:{ n:107,p:39,k:56,ph:6.8,rainfall:875 }, thiruvanmiyur:{ n:105,p:38,k:55,ph:6.8,rainfall:880 },
+  pallikaranai:{ n:108,p:40,k:57,ph:6.9,rainfall:890 }, madipakkam:{ n:109,p:40,k:57,ph:6.9,rainfall:875 },
+  medavakkam:{ n:110,p:41,k:58,ph:6.9,rainfall:870 }, pallavaram:{ n:112,p:41,k:59,ph:6.9,rainfall:860 },
+  alandur:{ n:108,p:40,k:57,ph:6.9,rainfall:855 }, maduravoyal:{ n:107,p:39,k:56,ph:7.0,rainfall:845 },
+  valasaravakkam:{ n:106,p:39,k:55,ph:7.0,rainfall:848 }, kundrathur:{ n:104,p:38,k:55,ph:7.0,rainfall:840 },
+  mangadu:{ n:106,p:39,k:56,ph:7.0,rainfall:850 }, villivakkam:{ n:107,p:40,k:56,ph:6.9,rainfall:832 },
+  vyasarpadi:{ n:105,p:38,k:54,ph:7.0,rainfall:828 }, royapuram:{ n:96,p:35,k:49,ph:7.2,rainfall:815 },
+  thiruvottiyur:{ n:95,p:35,k:48,ph:7.3,rainfall:812 }, porur:{ n:106,p:39,k:55,ph:7.0,rainfall:843 },
+  // COIMBATORE
+  coimbatore:{ n:125,p:48,k:70,ph:7.5,rainfall:680 }, pollachi:{ n:130,p:50,k:72,ph:7.4,rainfall:750 },
+  mettupalayam:{ n:118,p:44,k:65,ph:6.8,rainfall:900 }, sulur:{ n:120,p:46,k:68,ph:7.3,rainfall:700 },
+  kinathukadavu:{ n:128,p:49,k:70,ph:7.4,rainfall:720 }, annur:{ n:115,p:43,k:64,ph:7.0,rainfall:740 },
+  karamadai:{ n:117,p:44,k:65,ph:6.9,rainfall:900 }, madukkarai:{ n:122,p:47,k:68,ph:7.3,rainfall:710 },
+  perur:{ n:120,p:46,k:67,ph:7.2,rainfall:690 }, singanallur:{ n:116,p:43,k:63,ph:7.1,rainfall:680 },
+  saravanampatti:{ n:118,p:44,k:65,ph:7.0,rainfall:685 }, peelamedu:{ n:119,p:45,k:66,ph:7.2,rainfall:680 },
+  // CUDDALORE
+  cuddalore:{ n:125,p:50,k:68,ph:7.4,rainfall:1050 }, chidambaram:{ n:128,p:52,k:70,ph:7.3,rainfall:1100 },
+  panruti:{ n:120,p:47,k:65,ph:7.2,rainfall:1000 }, virudhachalam:{ n:118,p:45,k:64,ph:7.1,rainfall:950 },
+  neyveli:{ n:115,p:43,k:62,ph:6.8,rainfall:980 }, kattumannarkoil:{ n:122,p:48,k:67,ph:7.3,rainfall:1080 },
+  bhuvanagiri:{ n:120,p:46,k:65,ph:7.2,rainfall:1020 }, parangipettai:{ n:118,p:44,k:63,ph:7.4,rainfall:1120 },
+  // DHARMAPURI
+  dharmapuri:{ n:108,p:38,k:55,ph:6.5,rainfall:820 }, palacode:{ n:105,p:36,k:52,ph:6.4,rainfall:800 },
+  pennagaram:{ n:102,p:35,k:50,ph:6.3,rainfall:790 }, harur:{ n:100,p:34,k:48,ph:6.5,rainfall:810 },
+  nallampalli:{ n:104,p:36,k:52,ph:6.4,rainfall:805 }, karimangalam:{ n:106,p:37,k:53,ph:6.6,rainfall:815 },
+  papireddipatti:{ n:103,p:35,k:51,ph:6.5,rainfall:800 }, morappur:{ n:101,p:34,k:49,ph:6.4,rainfall:790 },
+  // DINDIGUL
+  dindigul:{ n:115,p:42,k:62,ph:7.0,rainfall:780 }, palani:{ n:108,p:38,k:56,ph:6.5,rainfall:950 },
+  kodaikanal:{ n:90,p:30,k:45,ph:5.5,rainfall:1380 }, natham:{ n:112,p:40,k:58,ph:6.9,rainfall:760 },
+  oddanchatram:{ n:110,p:40,k:57,ph:7.0,rainfall:740 }, vedasandur:{ n:108,p:38,k:55,ph:6.8,rainfall:750 },
+  nilakottai:{ n:105,p:37,k:53,ph:6.9,rainfall:730 }, batlagundu:{ n:114,p:41,k:60,ph:7.0,rainfall:760 },
+  // ERODE
+  erode:{ n:128,p:50,k:72,ph:7.4,rainfall:700 }, bhavani:{ n:125,p:48,k:70,ph:7.3,rainfall:720 },
+  gobichettipalayam:{ n:122,p:46,k:68,ph:7.2,rainfall:710 }, perundurai:{ n:120,p:45,k:67,ph:7.1,rainfall:700 },
+  sathyamangalam:{ n:115,p:42,k:63,ph:6.8,rainfall:900 }, nambiyur:{ n:112,p:40,k:60,ph:6.7,rainfall:850 },
+  anthiyur:{ n:110,p:39,k:58,ph:6.8,rainfall:830 }, modakurichi:{ n:118,p:44,k:65,ph:7.2,rainfall:710 },
+  // KALLAKURICHI
+  kallakurichi:{ n:115,p:42,k:60,ph:7.0,rainfall:900 }, ulundurpettai:{ n:112,p:40,k:58,ph:6.9,rainfall:880 },
+  sankarapuram:{ n:110,p:39,k:57,ph:7.0,rainfall:890 }, chinnasalem:{ n:108,p:38,k:55,ph:6.8,rainfall:870 },
+  tirukoilur:{ n:113,p:41,k:59,ph:7.1,rainfall:910 }, rishivandiyam:{ n:109,p:39,k:56,ph:6.9,rainfall:860 },
+  // KANCHEEPURAM
+  kancheepuram:{ n:112,p:42,k:60,ph:6.9,rainfall:920 }, sriperumbudur:{ n:108,p:40,k:58,ph:7.0,rainfall:880 },
+  uthiramerur:{ n:110,p:41,k:59,ph:7.0,rainfall:870 }, walajabad:{ n:106,p:38,k:56,ph:7.1,rainfall:850 },
+  oragadam:{ n:109,p:40,k:58,ph:6.9,rainfall:880 }, kolapakkam:{ n:105,p:38,k:55,ph:7.0,rainfall:870 },
+  pozhichalur:{ n:104,p:37,k:54,ph:7.1,rainfall:865 }, pammal:{ n:105,p:38,k:55,ph:7.0,rainfall:872 },
+  anakaputhur:{ n:106,p:39,k:56,ph:7.0,rainfall:868 }, thiruneermalai:{ n:104,p:37,k:54,ph:7.1,rainfall:862 },
+  perungalathur:{ n:105,p:38,k:55,ph:6.9,rainfall:875 },
+  // KANYAKUMARI — high rainfall but hot temp (27-32°C) blocks coffee
+  nagercoil:{ n:115,p:45,k:62,ph:6.5,rainfall:1500 }, thuckalay:{ n:112,p:43,k:60,ph:6.4,rainfall:1550 },
+  padmanabhapuram:{ n:110,p:42,k:58,ph:6.5,rainfall:1480 }, colachel:{ n:108,p:40,k:56,ph:6.6,rainfall:1580 },
+  kuzhithurai:{ n:113,p:44,k:61,ph:6.4,rainfall:1560 }, marthandam:{ n:114,p:44,k:62,ph:6.5,rainfall:1520 },
+  eraniel:{ n:109,p:41,k:57,ph:6.6,rainfall:1510 }, rajakkamangalam:{ n:111,p:42,k:59,ph:6.5,rainfall:1490 },
+  boothapandi:{ n:110,p:41,k:58,ph:6.5,rainfall:1500 },
+  // KARUR
+  karur:{ n:125,p:48,k:70,ph:7.5,rainfall:840 }, kulithalai:{ n:122,p:46,k:68,ph:7.4,rainfall:850 },
+  krishnarayapuram:{ n:118,p:44,k:65,ph:7.3,rainfall:820 }, aravakurichi:{ n:120,p:45,k:67,ph:7.4,rainfall:830 },
+  thanthoni:{ n:116,p:43,k:63,ph:7.3,rainfall:840 }, pugalur:{ n:119,p:44,k:66,ph:7.4,rainfall:835 },
+  kadavur:{ n:117,p:43,k:64,ph:7.3,rainfall:825 },
+  // KRISHNAGIRI
+  krishnagiri:{ n:105,p:37,k:53,ph:6.4,rainfall:780 }, hosur:{ n:100,p:35,k:50,ph:6.3,rainfall:820 },
+  denkanikottai:{ n:98,p:33,k:48,ph:6.2,rainfall:900 }, uthangarai:{ n:102,p:35,k:51,ph:6.4,rainfall:760 },
+  bargur:{ n:104,p:36,k:52,ph:6.5,rainfall:770 }, shoolagiri:{ n:102,p:35,k:51,ph:6.3,rainfall:800 },
+  kelamangalam:{ n:99,p:34,k:49,ph:6.3,rainfall:850 }, mathigiri:{ n:101,p:35,k:50,ph:6.3,rainfall:810 },
+  // MADURAI
+  madurai:{ n:118,p:44,k:63,ph:7.2,rainfall:850 }, melur:{ n:115,p:42,k:61,ph:7.1,rainfall:820 },
+  usilampatti:{ n:112,p:40,k:58,ph:7.0,rainfall:780 }, peraiyur:{ n:110,p:39,k:57,ph:7.0,rainfall:790 },
+  thirumangalam:{ n:116,p:43,k:62,ph:7.1,rainfall:830 }, vadipatti:{ n:113,p:41,k:59,ph:7.0,rainfall:810 },
+  sholavandan:{ n:115,p:42,k:61,ph:7.1,rainfall:840 }, paravai:{ n:117,p:43,k:62,ph:7.2,rainfall:855 },
+  avaniyapuram:{ n:116,p:42,k:61,ph:7.1,rainfall:845 },
+  // MAYILADUTHURAI
+  mayiladuthurai:{ n:130,p:52,k:74,ph:7.3,rainfall:1050 }, sirkazhi:{ n:128,p:50,k:72,ph:7.3,rainfall:1070 },
+  tharangambadi:{ n:122,p:47,k:68,ph:7.5,rainfall:1120 }, kuthalam:{ n:125,p:49,k:70,ph:7.2,rainfall:1030 },
+  sembanarkoil:{ n:128,p:51,k:73,ph:7.3,rainfall:1050 }, papanasam:{ n:130,p:52,k:74,ph:7.2,rainfall:1000 },
+  poompuhar:{ n:120,p:46,k:66,ph:7.4,rainfall:1100 },
+  // NAGAPATTINAM
+  nagapattinam:{ n:125,p:50,k:70,ph:7.5,rainfall:1150 }, vedaranyam:{ n:120,p:46,k:66,ph:7.6,rainfall:1200 },
+  kilvelur:{ n:122,p:48,k:68,ph:7.4,rainfall:1100 }, nagore:{ n:115,p:43,k:62,ph:7.5,rainfall:1160 },
+  // NAMAKKAL
+  namakkal:{ n:115,p:43,k:62,ph:6.8,rainfall:760 }, rasipuram:{ n:112,p:41,k:60,ph:6.7,rainfall:750 },
+  tiruchengode:{ n:110,p:40,k:58,ph:6.8,rainfall:740 }, kumarapalayam:{ n:118,p:44,k:64,ph:7.0,rainfall:720 },
+  mohanur:{ n:113,p:41,k:60,ph:6.8,rainfall:755 }, erumapatty:{ n:109,p:39,k:57,ph:6.7,rainfall:745 },
+  vennandur:{ n:108,p:38,k:56,ph:6.7,rainfall:740 },
+  // NILGIRIS — coffee zone, high rainfall intentional
+  ooty:{ n:95,p:32,k:48,ph:5.8,rainfall:1850 }, coonoor:{ n:98,p:34,k:50,ph:5.6,rainfall:1920 },
+  kotagiri:{ n:88,p:30,k:44,ph:5.5,rainfall:1650 }, gudalur:{ n:110,p:40,k:58,ph:5.9,rainfall:2100 },
+  pandalur:{ n:108,p:38,k:55,ph:6.0,rainfall:2050 }, kundah:{ n:90,p:28,k:42,ph:5.4,rainfall:1750 },
+  lovedale:{ n:94,p:31,k:47,ph:5.7,rainfall:1880 }, wellington:{ n:96,p:33,k:49,ph:5.8,rainfall:1830 },
+  naduvattam:{ n:102,p:36,k:52,ph:6.1,rainfall:1950 }, devala:{ n:106,p:37,k:54,ph:6.0,rainfall:2000 },
+  thiashola:{ n:87,p:28,k:41,ph:5.3,rainfall:1680 }, sholur:{ n:100,p:35,k:51,ph:5.9,rainfall:1900 },
+  emerald:{ n:92,p:30,k:45,ph:5.5,rainfall:1800 }, yellanalli:{ n:85,p:27,k:40,ph:5.3,rainfall:1650 },
+  avalanche:{ n:88,p:29,k:43,ph:5.4,rainfall:1700 },
+  // PERAMBALUR
+  perambalur:{ n:112,p:40,k:58,ph:7.0,rainfall:880 }, veppur:{ n:108,p:38,k:56,ph:7.0,rainfall:870 },
+  kunnam:{ n:110,p:39,k:57,ph:7.1,rainfall:860 }, alathur:{ n:109,p:39,k:57,ph:7.0,rainfall:875 },
+  esanai:{ n:106,p:37,k:54,ph:7.0,rainfall:865 }, kurumbalur:{ n:111,p:40,k:58,ph:7.1,rainfall:880 },
+  // PUDUKKOTTAI
+  pudukkottai:{ n:118,p:44,k:63,ph:7.2,rainfall:900 }, aranthangi:{ n:120,p:46,k:65,ph:7.3,rainfall:920 },
+  karambakkudi:{ n:115,p:42,k:61,ph:7.1,rainfall:890 }, gandarvakottai:{ n:116,p:43,k:62,ph:7.2,rainfall:895 },
+  iluppur:{ n:114,p:41,k:60,ph:7.1,rainfall:885 }, thirumayam:{ n:117,p:43,k:62,ph:7.2,rainfall:900 },
+  viralimalai:{ n:115,p:42,k:61,ph:7.1,rainfall:885 }, avudaiyarkoil:{ n:116,p:43,k:62,ph:7.2,rainfall:895 },
+  // RAMANATHAPURAM
+  ramanathapuram:{ n:100,p:36,k:52,ph:7.6,rainfall:700 }, rameswaram:{ n:88,p:30,k:44,ph:7.8,rainfall:650 },
+  paramakudi:{ n:102,p:37,k:53,ph:7.5,rainfall:710 }, tiruvadanai:{ n:98,p:34,k:50,ph:7.6,rainfall:720 },
+  mudukulathur:{ n:100,p:36,k:52,ph:7.5,rainfall:700 }, kamuthi:{ n:104,p:37,k:53,ph:7.5,rainfall:710 },
+  kilakarai:{ n:96,p:33,k:49,ph:7.7,rainfall:740 }, mandapam:{ n:90,p:31,k:45,ph:7.8,rainfall:680 },
+  // RANIPET
+  ranipet:{ n:108,p:40,k:58,ph:6.7,rainfall:950 }, arcot:{ n:110,p:41,k:59,ph:6.8,rainfall:960 },
+  walajapet:{ n:106,p:38,k:56,ph:6.7,rainfall:940 }, sholinghur:{ n:104,p:37,k:55,ph:6.8,rainfall:930 },
+  arakkonam:{ n:109,p:40,k:58,ph:6.8,rainfall:970 }, nemili:{ n:105,p:38,k:56,ph:6.7,rainfall:945 },
+  kalavai:{ n:107,p:39,k:57,ph:6.7,rainfall:955 },
+  // SALEM
+  salem:{ n:120,p:46,k:66,ph:7.0,rainfall:850 }, mettur:{ n:118,p:44,k:64,ph:6.9,rainfall:900 },
+  omalur:{ n:116,p:43,k:63,ph:7.0,rainfall:840 }, yercaud:{ n:100,p:36,k:52,ph:5.8,rainfall:1380 },
+  attur:{ n:115,p:42,k:62,ph:6.9,rainfall:830 }, valapady:{ n:112,p:40,k:60,ph:6.8,rainfall:870 },
+  edappadi:{ n:118,p:44,k:65,ph:7.1,rainfall:820 }, gangavalli:{ n:114,p:41,k:61,ph:6.9,rainfall:835 },
+  // SIVAGANGA
+  sivaganga:{ n:118,p:44,k:63,ph:7.3,rainfall:820 }, karaikudi:{ n:120,p:46,k:65,ph:7.4,rainfall:830 },
+  devakottai:{ n:116,p:43,k:62,ph:7.3,rainfall:810 }, manamadurai:{ n:115,p:42,k:61,ph:7.2,rainfall:800 },
+  illayangudi:{ n:114,p:41,k:60,ph:7.2,rainfall:810 }, singampunari:{ n:116,p:43,k:62,ph:7.3,rainfall:815 },
+  // TENKASI — hot temp blocks coffee even with higher rainfall
+  tenkasi:{ n:115,p:44,k:63,ph:6.5,rainfall:1200 }, courtallam:{ n:108,p:40,k:57,ph:6.2,rainfall:1350 },
+  sankarankovil:{ n:112,p:42,k:61,ph:6.6,rainfall:950 }, kadayanallur:{ n:114,p:43,k:62,ph:6.6,rainfall:920 },
+  alangulam:{ n:110,p:40,k:58,ph:6.5,rainfall:900 }, shencottah:{ n:112,p:41,k:60,ph:6.4,rainfall:1280 },
+  puliyangudi:{ n:113,p:42,k:61,ph:6.6,rainfall:940 },
+  // THANJAVUR
+  thanjavur:{ n:135,p:55,k:78,ph:7.2,rainfall:950 }, kumbakonam:{ n:138,p:57,k:80,ph:7.1,rainfall:980 },
+  papanasam2:{ n:132,p:53,k:76,ph:7.2,rainfall:960 }, pattukottai:{ n:128,p:51,k:73,ph:7.3,rainfall:1020 },
+  orathanadu:{ n:130,p:52,k:75,ph:7.2,rainfall:940 }, thiruvaiyaru:{ n:135,p:54,k:77,ph:7.1,rainfall:955 },
+  peravurani:{ n:128,p:50,k:72,ph:7.3,rainfall:1000 }, vallam:{ n:133,p:53,k:76,ph:7.2,rainfall:950 },
+  // THENI
+  theni:{ n:118,p:44,k:63,ph:6.8,rainfall:950 }, bodinayakanur:{ n:115,p:42,k:61,ph:6.7,rainfall:980 },
+  periyakulam:{ n:112,p:40,k:58,ph:6.6,rainfall:1020 }, uthamapalayam:{ n:116,p:43,k:62,ph:6.8,rainfall:960 },
+  andipatti:{ n:113,p:41,k:59,ph:6.7,rainfall:940 }, cumbum:{ n:114,p:42,k:60,ph:6.6,rainfall:990 },
+  kambam:{ n:115,p:42,k:61,ph:6.7,rainfall:970 },
+  // THOOTHUKUDI
+  thoothukudi:{ n:102,p:37,k:53,ph:7.5,rainfall:680 }, tiruchendur:{ n:98,p:34,k:50,ph:7.6,rainfall:720 },
+  kovilpatti:{ n:108,p:40,k:57,ph:7.3,rainfall:660 }, vilathikulam:{ n:104,p:37,k:53,ph:7.4,rainfall:670 },
+  ottapidaram:{ n:106,p:38,k:54,ph:7.4,rainfall:665 }, sathankulam:{ n:105,p:37,k:53,ph:7.4,rainfall:675 },
+  kayalpattinam:{ n:100,p:35,k:51,ph:7.6,rainfall:700 },
+  // TIRUCHIRAPPALLI
+  tiruchirappalli:{ n:125,p:48,k:70,ph:7.3,rainfall:900 }, lalgudi:{ n:128,p:50,k:72,ph:7.2,rainfall:930 },
+  manachanallur:{ n:122,p:46,k:68,ph:7.2,rainfall:910 }, musiri:{ n:120,p:45,k:67,ph:7.1,rainfall:890 },
+  srirangam:{ n:130,p:52,k:74,ph:7.2,rainfall:920 }, thottiyam:{ n:118,p:44,k:65,ph:7.1,rainfall:880 },
+  thiruverumbur:{ n:124,p:47,k:69,ph:7.2,rainfall:905 }, ariyamangalam:{ n:122,p:46,k:68,ph:7.2,rainfall:900 },
+  // TIRUNELVELI
+  tirunelveli:{ n:115,p:43,k:62,ph:7.1,rainfall:750 }, palayamkottai:{ n:114,p:42,k:61,ph:7.1,rainfall:755 },
+  nanguneri:{ n:110,p:40,k:58,ph:7.0,rainfall:900 }, radhapuram:{ n:106,p:38,k:55,ph:7.2,rainfall:820 },
+  cheranmahadevi:{ n:112,p:41,k:60,ph:6.9,rainfall:980 }, ambasamudram:{ n:114,p:42,k:61,ph:6.8,rainfall:1050 },
+  valliyoor:{ n:108,p:39,k:57,ph:7.1,rainfall:800 },
+  // TIRUPATHUR
+  tirupathur:{ n:106,p:38,k:55,ph:6.6,rainfall:960 }, vaniyambadi:{ n:108,p:39,k:57,ph:6.7,rainfall:940 },
+  ambur:{ n:110,p:40,k:58,ph:6.8,rainfall:950 }, jolarpettai:{ n:105,p:37,k:54,ph:6.6,rainfall:970 },
+  natrampalli:{ n:104,p:36,k:53,ph:6.5,rainfall:955 }, gudiyatham:{ n:107,p:38,k:56,ph:6.7,rainfall:945 },
+  alangayam:{ n:103,p:36,k:53,ph:6.5,rainfall:960 }, pernambut:{ n:106,p:38,k:55,ph:6.6,rainfall:950 },
+  // TIRUPPUR
+  tiruppur:{ n:125,p:48,k:70,ph:7.4,rainfall:680 }, dharapuram:{ n:122,p:46,k:68,ph:7.4,rainfall:660 },
+  udumalaipettai:{ n:120,p:45,k:67,ph:7.3,rainfall:700 }, palladam:{ n:118,p:44,k:66,ph:7.3,rainfall:670 },
+  kangeyam:{ n:120,p:46,k:68,ph:7.4,rainfall:660 }, avinashi:{ n:122,p:46,k:68,ph:7.3,rainfall:685 },
+  sulthanpet:{ n:116,p:43,k:63,ph:7.2,rainfall:690 }, mulanur:{ n:118,p:44,k:65,ph:7.3,rainfall:665 },
+  uthukuli:{ n:119,p:45,k:66,ph:7.3,rainfall:675 },
+  // TIRUVALLUR
+  tiruvallur:{ n:115,p:45,k:62,ph:7.3,rainfall:880 }, ponneri:{ n:125,p:50,k:68,ph:7.5,rainfall:900 },
+  gummidipoondi:{ n:122,p:48,k:66,ph:7.4,rainfall:910 }, kavaraipettai:{ n:118,p:44,k:63,ph:7.2,rainfall:870 },
+  uthukottai:{ n:110,p:42,k:60,ph:7.1,rainfall:850 }, pattabiram:{ n:108,p:40,k:58,ph:7.0,rainfall:860 },
+  poonamallee:{ n:112,p:43,k:61,ph:7.2,rainfall:890 }, minjur:{ n:120,p:46,k:64,ph:7.4,rainfall:920 },
+  tiruttani:{ n:105,p:38,k:55,ph:6.9,rainfall:840 }, cholavaram:{ n:117,p:44,k:60,ph:7.3,rainfall:885 },
+  veppampattu:{ n:111,p:41,k:59,ph:7.1,rainfall:865 }, sevvapet:{ n:109,p:40,k:57,ph:7.1,rainfall:855 },
+  perambakkam:{ n:113,p:42,k:60,ph:7.2,rainfall:870 }, kadambathur:{ n:110,p:41,k:58,ph:7.1,rainfall:850 },
+  arani:{ n:108,p:39,k:57,ph:7.0,rainfall:845 },
+  // TIRUVANNAMALAI
+  tiruvannamalai:{ n:112,p:41,k:59,ph:6.8,rainfall:950 }, polur:{ n:108,p:39,k:57,ph:6.7,rainfall:900 },
+  cheyyar:{ n:110,p:40,k:58,ph:6.8,rainfall:930 }, vandavasi:{ n:109,p:39,k:57,ph:6.8,rainfall:920 },
+  kalasapakkam:{ n:106,p:37,k:55,ph:6.7,rainfall:910 }, chetpet:{ n:107,p:38,k:56,ph:6.7,rainfall:905 },
+  kilpennathur:{ n:105,p:37,k:54,ph:6.7,rainfall:915 }, thandrampet:{ n:108,p:39,k:57,ph:6.8,rainfall:940 },
+  // TIRUVARUR
+  tiruvarur:{ n:132,p:53,k:75,ph:7.3,rainfall:1020 }, mannargudi:{ n:135,p:55,k:78,ph:7.2,rainfall:1050 },
+  thiruthuraipoondi:{ n:128,p:51,k:73,ph:7.4,rainfall:1100 }, needamangalam:{ n:130,p:52,k:74,ph:7.3,rainfall:1030 },
+  muthupettai:{ n:125,p:49,k:71,ph:7.5,rainfall:1120 }, kodavasal:{ n:132,p:53,k:75,ph:7.3,rainfall:1040 },
+  valangaiman:{ n:130,p:52,k:74,ph:7.2,rainfall:1025 }, nannilam:{ n:128,p:51,k:73,ph:7.3,rainfall:1035 },
+  // VELLORE
+  vellore:{ n:110,p:41,k:59,ph:6.7,rainfall:880 }, katpadi:{ n:108,p:40,k:58,ph:6.8,rainfall:870 },
+  anaicut:{ n:106,p:38,k:56,ph:6.7,rainfall:860 }, kaniyambadi:{ n:107,p:39,k:57,ph:6.7,rainfall:865 },
+  sathuvachari:{ n:108,p:39,k:57,ph:6.8,rainfall:875 },
+  // VILUPPURAM
+  viluppuram:{ n:114,p:42,k:61,ph:7.0,rainfall:950 }, tindivanam:{ n:112,p:41,k:60,ph:7.0,rainfall:980 },
+  gingee:{ n:108,p:39,k:57,ph:6.9,rainfall:920 }, marakanam:{ n:106,p:38,k:55,ph:7.2,rainfall:1020 },
+  vikravandi:{ n:110,p:40,k:58,ph:7.0,rainfall:940 },
+  // VIRUDHUNAGAR
+  virudhunagar:{ n:115,p:43,k:62,ph:7.1,rainfall:760 }, sivakasi:{ n:112,p:41,k:60,ph:7.0,rainfall:740 },
+  srivilliputhur:{ n:118,p:44,k:63,ph:7.0,rainfall:800 }, rajapalayam:{ n:120,p:46,k:65,ph:6.8,rainfall:900 },
+  aruppukkottai:{ n:116,p:43,k:62,ph:7.1,rainfall:760 }, kariapatti:{ n:113,p:41,k:60,ph:7.1,rainfall:740 },
+  watrap:{ n:114,p:42,k:61,ph:7.0,rainfall:770 }, sattur:{ n:112,p:40,k:59,ph:7.1,rainfall:745 }
+};
+
+/* ═══════════════════════════════════════════════════════
+   AREA DATA
+═══════════════════════════════════════════════════════ */
+const areaData = {
+  ariyalur:["Ariyalur","Andimadam","Jayankondam","Sendurai","T. Palur","Udayarpalayam"],
+  chengalpattu:["Chengalpattu","Madurantakam","Cheyyur","Thiruporur","Kelambakkam","Vandalur","Guduvancheri","Urapakkam","Padappai","Kalpakkam","Maraimalai Nagar","Singaperumalkoil","Tirukalukundram"],
+  chennai:["Adyar","Anna Nagar","Ambattur","Avadi","Besant Nagar","Chromepet","Egmore","Guindy","Kilpauk","Kodambakkam","Kolathur","Koyambedu","Madhavaram","Mylapore","Nungambakkam","OMR","Pallavaram","Perambur","Porur","Royapuram","Saidapet","Sholinganallur","T. Nagar","Tambaram","Taramani","Thiruvanmiyur","Thiruvottiyur","Tondiarpet","Vadapalani","Valasaravakkam","Velachery","Villivakkam","Vyasarpadi","Manali","Ennore","Madipakkam","Pallikaranai","Alandur"],
+  coimbatore:["Coimbatore","Pollachi","Mettupalayam","Sulur","Kinathukadavu","Annur","Karamadai","Madukkarai","Perur","Singanallur","Saravanampatti","Peelamedu"],
+  cuddalore:["Cuddalore","Chidambaram","Panruti","Virudhachalam","Neyveli","Kattumannarkoil","Bhuvanagiri","Parangipettai"],
+  dharmapuri:["Dharmapuri","Palacode","Pennagaram","Harur","Nallampalli","Karimangalam","Papireddipatti","Morappur"],
+  dindigul:["Dindigul","Palani","Kodaikanal","Natham","Oddanchatram","Vedasandur","Nilakottai","Batlagundu"],
+  erode:["Erode","Bhavani","Gobichettipalayam","Perundurai","Sathyamangalam","Nambiyur","Anthiyur","Modakurichi"],
+  kallakurichi:["Kallakurichi","Ulundurpettai","Sankarapuram","Chinnasalem","Tirukoilur","Rishivandiyam"],
+  kancheepuram:["Kancheepuram","Sriperumbudur","Uthiramerur","Walajabad","Oragadam","Kundrathur","Mangadu","Kolapakkam","Pozhichalur","Pammal","Anakaputhur","Thiruneermalai","Perungalathur"],
+  kanyakumari:["Nagercoil","Thuckalay","Padmanabhapuram","Colachel","Kuzhithurai","Marthandam","Eraniel","Rajakkamangalam","Boothapandi"],
+  karur:["Karur","Kulithalai","Krishnarayapuram","Aravakurichi","Thanthoni","Pugalur","Kadavur"],
+  krishnagiri:["Krishnagiri","Hosur","Denkanikottai","Uthangarai","Bargur","Shoolagiri","Kelamangalam","Mathigiri"],
+  madurai:["Madurai","Melur","Usilampatti","Peraiyur","Thirumangalam","Vadipatti","Sholavandan","Paravai","Avaniyapuram"],
+  mayiladuthurai:["Mayiladuthurai","Sirkazhi","Tharangambadi","Kuthalam","Sembanarkoil","Papanasam","Poompuhar"],
+  nagapattinam:["Nagapattinam","Vedaranyam","Kilvelur","Nagore"],
+  namakkal:["Namakkal","Rasipuram","Tiruchengode","Kumarapalayam","Mohanur","Erumapatty","Vennandur"],
+  nilgiris:["Ooty","Coonoor","Kotagiri","Gudalur","Pandalur","Kundah","Lovedale","Wellington","Naduvattam","Devala","Thiashola","Sholur","Emerald","Yellanalli","Avalanche"],
+  perambalur:["Perambalur","Veppur","Kunnam","Alathur","Esanai","Kurumbalur"],
+  pudukkottai:["Pudukkottai","Aranthangi","Karambakkudi","Gandarvakottai","Iluppur","Thirumayam","Viralimalai","Avudaiyarkoil"],
+  ramanathapuram:["Ramanathapuram","Rameswaram","Paramakudi","Tiruvadanai","Mudukulathur","Kamuthi","Kilakarai","Mandapam"],
+  ranipet:["Ranipet","Arcot","Walajapet","Sholinghur","Arakkonam","Nemili","Kalavai"],
+  salem:["Salem","Mettur","Omalur","Yercaud","Attur","Valapady","Edappadi","Gangavalli"],
+  sivaganga:["Sivaganga","Karaikudi","Devakottai","Manamadurai","Illayangudi","Singampunari"],
+  tenkasi:["Tenkasi","Courtallam","Sankarankovil","Kadayanallur","Alangulam","Shencottah","Puliyangudi"],
+  thanjavur:["Thanjavur","Kumbakonam","Papanasam","Pattukottai","Orathanadu","Thiruvaiyaru","Peravurani","Vallam"],
+  theni:["Theni","Bodinayakanur","Periyakulam","Uthamapalayam","Andipatti","Cumbum","Kambam"],
+  thoothukudi:["Thoothukudi","Tiruchendur","Kovilpatti","Vilathikulam","Ottapidaram","Sathankulam","Kayalpattinam"],
+  tiruchirappalli:["Tiruchirappalli","Lalgudi","Manachanallur","Musiri","Srirangam","Thottiyam","Thiruverumbur","Ariyamangalam"],
+  tirunelveli:["Tirunelveli","Palayamkottai","Nanguneri","Radhapuram","Cheranmahadevi","Ambasamudram","Valliyoor"],
+  tirupathur:["Tirupathur","Vaniyambadi","Ambur","Jolarpettai","Natrampalli","Gudiyatham","Alangayam","Pernambut"],
+  tiruppur:["Tiruppur","Dharapuram","Udumalaipettai","Palladam","Kangeyam","Avinashi","Sulthanpet","Mulanur","Uthukuli"],
+  tiruvallur:["Tiruvallur","Ponneri","Gummidipoondi","Kavaraipettai","Uthukottai","Pattabiram","Poonamallee","Minjur","Tiruttani","Cholavaram","Veppampattu","Sevvapet","Perambakkam","Kadambathur","Arani"],
+  tiruvannamalai:["Tiruvannamalai","Polur","Cheyyar","Vandavasi","Kalasapakkam","Chetpet","Kilpennathur","Thandrampet"],
+  tiruvarur:["Tiruvarur","Mannargudi","Thiruthuraipoondi","Needamangalam","Muthupettai","Kodavasal","Valangaiman","Nannilam"],
+  vellore:["Vellore","Katpadi","Anaicut","Kaniyambadi","Sathuvachari"],
+  viluppuram:["Viluppuram","Tindivanam","Gingee","Marakanam","Vikravandi"],
+  virudhunagar:["Virudhunagar","Sivakasi","Srivilliputhur","Rajapalayam","Aruppukkottai","Kariapatti","Watrap","Sattur"]
+};
+
+/* ═══════════════════════════════════════════════════════
+   CURRENT SELECTED DISTRICT — used for coffee guard
+═══════════════════════════════════════════════════════ */
+let currentDistrict = "";
+
+/* ═══════════════════════════════════════════════════════
+   DISTRICT CHANGE → populate area dropdown
+═══════════════════════════════════════════════════════ */
+document.getElementById("district").addEventListener("change", function() {
+  currentDistrict = this.value;
+  const areaSelect = document.getElementById("area");
+  const areaGroup  = document.getElementById("areaGroup");
+  areaSelect.innerHTML = "";
+
+  if (areaData[currentDistrict]) {
+    areaGroup.style.display = "grid";
+    areaData[currentDistrict].forEach(area => {
+      const opt = document.createElement("option");
+      opt.value = area.toLowerCase().replace(/\s/g, "");
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+    document.getElementById("step1").classList.add("active");
+  } else {
+    areaGroup.style.display = "none";
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   AUTO-FILL — live weather + static soil
+═══════════════════════════════════════════════════════ */
+async function callweather() {
+  const btn  = document.querySelector(".autofill-btn");
+  const area = document.getElementById("area").value;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:white;border-color:rgba(255,255,255,0.3);"></div> Fetching…';
+
+  try {
+    const url  = `https://api.openweathermap.org/data/2.5/weather?q=${area}&appid=${API_KEY}&units=metric`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+
+    // ── Live weather: only temperature (reliable)
+    document.getElementById("temperature").value = data.main.temp;
+
+    // ── Soil + rainfall from static data (more accurate than live API)
+    const soil = soilData[area] || {};
+    if (soil.n !== undefined) {
+      document.getElementById("N").value        = soil.n;
+      document.getElementById("P").value        = soil.p;
+      document.getElementById("K").value        = soil.k;
+      document.getElementById("ph").value       = soil.ph;
+      document.getElementById("rainfall").value = soil.rainfall;
+      // Use static humidity based on district type — live humidity fluctuates too much
+      document.getElementById("humidity").value = getTypicalHumidity(currentDistrict, area);
+    }
+
+    ["N","P","K","ph","temperature","humidity","rainfall"].forEach(id => {
+      document.getElementById(id).classList.add("has-value");
+    });
+
+    btn.innerHTML = "✅ Data Filled!";
+    btn.style.background = "linear-gradient(135deg,#16a34a,#0d9252)";
+    document.getElementById("step2").classList.add("active");
+    document.getElementById("step3").classList.add("active");
+  } catch(err) {
+    btn.innerHTML = "❌ Failed — Enter Manually";
+    btn.style.background = "#ef4444";
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.innerHTML = "🌦️ Auto-fill Weather &amp; Soil Data";
+      btn.style.background = "";
+    }, 3000);
+  }
+}
+
+/* ── Typical humidity by region type ── */
+function getTypicalHumidity(district, area) {
+  const nilgirisAreas = ["ooty","coonoor","kotagiri","gudalur","pandalur","kundah",
+    "lovedale","wellington","naduvattam","devala","thiashola","sholur","emerald","yellanalli","avalanche"];
+  if (district === "nilgiris") return 72;
+  if (district === "kanyakumari") return 78;
+  if (["nagapattinam","cuddalore","mayiladuthurai","tiruvarur"].includes(district)) return 78;
+  if (["ramanathapuram","thoothukudi"].includes(district)) return 72;
+  if (["coimbatore","erode","tiruppur","karur"].includes(district)) return 62;
+  if (["dharmapuri","krishnagiri"].includes(district)) return 60;
+  return 72; // default moderate
+}
+
+/* ═══════════════════════════════════════════════════════
+   COFFEE GUARD — post-process API result
+   If the predicted crop is coffee AND the district is
+   not in COFFEE_DISTRICTS, swap it with the best
+   non-coffee alternative.
+═══════════════════════════════════════════════════════ */
+function applyGeoGuard(result) {
+  const isCoffeeDistrict = COFFEE_DISTRICTS.has(currentDistrict);
+
+  if (!isCoffeeDistrict && result.recommended_crop === "coffee") {
+    // Find best non-coffee alternative
+    const altCrops = (result.alternatives || []).filter(a => a.crop !== "coffee");
+    if (altCrops.length > 0) {
+      // Promote first non-coffee alternative to top
+      const newTop = altCrops[0];
+      result.alternatives = [
+        { crop: result.recommended_crop, confidence: result.confidence,
+          confidence_label: result.confidence_label, feasible: false },
+        ...altCrops.slice(1)
+      ].filter(a => a.confidence >= 0.10);
+      result.recommended_crop   = newTop.crop;
+      result.confidence         = newTop.confidence;
+      result.confidence_label   = newTop.confidence_label;
+      result.warning = `Coffee is not suitable for ${currentDistrict.charAt(0).toUpperCase()+currentDistrict.slice(1)} region. Showing next best crop.`;
+    }
+  }
+
+  // Filter coffee from alternatives too if not coffee district
+  if (!isCoffeeDistrict && result.alternatives) {
+    result.alternatives = result.alternatives.filter(a => a.crop !== "coffee");
+  }
+
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════
+   FORM SUBMIT
+═══════════════════════════════════════════════════════ */
+async function submitForm() {
+  const resultDiv = document.getElementById("result");
+  const submitBtn = document.getElementById("submitBtn");
+
+  const N = document.getElementById("N").value;
+  const P = document.getElementById("P").value;
+  const K = document.getElementById("K").value;
+  const temperature = document.getElementById("temperature").value;
+  const humidity    = document.getElementById("humidity").value;
+  const ph          = document.getElementById("ph").value;
+  const rainfall    = document.getElementById("rainfall").value;
+
+  if (!N||!P||!K||!temperature||!humidity||!ph||!rainfall) {
+    resultDiv.innerHTML = `<div class="result-error">⚠️ Please fill in all soil and climate fields before predicting.</div>`;
+    return;
+  }
+
+  submitBtn.disabled = true;
+  resultDiv.innerHTML = `<div class="result-loading"><div class="spinner"></div> Analysing soil &amp; climate data…</div>`;
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ N:+N, P:+P, K:+K, temperature:+temperature, humidity:+humidity, ph:+ph, rainfall:+rainfall })
+    });
+    if (!response.ok) throw new Error(`Server error ${response.status}`);
+    let result = await response.json();
+
+    // ── Apply geographic coffee guard ──
+    result = applyGeoGuard(result);
+
+    const emoji      = cropEmoji[result.recommended_crop?.toLowerCase()] || "🌱";
+    const confClass  = result.confidence_label || "moderate";
+    const confPct    = ((result.confidence || 0) * 100).toFixed(1);
+    const confLabels = { high:"High confidence", moderate:"Moderate confidence", low:"Low confidence", very_low:"Very low confidence" };
+
+    // Warning banner (backend warning OR geo-guard warning)
+    let warningHtml = "";
+    if (result.warning) {
+      warningHtml = `<div class="result-warning"><span>⚠️</span><span>${result.warning}</span></div>`;
+    }
+
+    let altsHtml = "";
+    const validAlts = (result.alternatives || []).filter(a => a.confidence >= 0.10);
+    if (validAlts.length) {
+      altsHtml = `
+        <div class="alt-label">Other Suitable Crops</div>
+        <div class="alt-list">
+          ${validAlts.map(c => `
+            <div class="alt-item">
+              <span>${cropEmoji[c.crop?.toLowerCase()]||'🌿'} ${c.crop}</span>
+              <div class="alt-bar-wrap"><div class="alt-bar" style="width:${(c.confidence*100).toFixed(0)}%"></div></div>
+              <span class="alt-pct">${(c.confidence*100).toFixed(1)}%</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    resultDiv.innerHTML = `
+      ${warningHtml}
+      <div class="result-success">
+        <div class="crop-main">
+          <div class="crop-badge">${emoji}</div>
+          <div class="crop-info">
+            <div class="crop-name">${result.recommended_crop}</div>
+            <div class="crop-sub">Top recommendation for your conditions</div>
+            <div class="confidence-row">
+              <span class="conf-badge conf-${confClass}">
+                <span class="conf-dot"></span>${confLabels[confClass]||confClass}
+              </span>
+              <div class="conf-bar-wrap">
+                <div class="conf-bar ${confClass}" style="width:${confPct}%"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-soft);font-weight:600;">${confPct}%</span>
+            </div>
+          </div>
+        </div>
+        ${altsHtml}
+      </div>`;
+
+  } catch(err) {
+    resultDiv.innerHTML = `
+      <div class="result-error">
+        ❌ Could not connect to prediction server.<br/>
+        <small style="opacity:0.7">Ensure backend is running at ${BACKEND_URL}</small>
+      </div>`;
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   BACKEND CHECK ON LOAD
+═══════════════════════════════════════════════════════ */
+window.addEventListener("load", async () => {
+  try {
+    const r = await fetch(`${BACKEND_URL}/`);
+    if (!r.ok) throw new Error();
+  } catch {
+    document.getElementById("result").innerHTML =
+      `<div class="result-error">⚠️ Backend server not detected. Please start the prediction server first.</div>`;
+  }
+});
+</script>
+</body>
+</html>--->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crop Predictor — AgroSense</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green-deep:   #0a3d1f;
+      --green-mid:    #166534;
+      --green-fresh:  #22c55e;
+      --green-light:  #86efac;
+      --green-pale:   #dcfce7;
+      --white:        #ffffff;
+      --glass:        rgba(255,255,255,0.12);
+      --glass-border: rgba(255,255,255,0.22);
+      --text-dark:    #0f2d14;
+      --text-mid:     #1a4a26;
+      --text-soft:    #4b7a59;
+      --shadow-lg:    0 24px 64px rgba(10,61,31,0.28);
+      --radius:       16px;
+      --radius-sm:    10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: var(--green-deep);
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 50%, rgba(34,197,94,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 85% 20%, rgba(22,101,52,0.35) 0%, transparent 55%),
+        linear-gradient(160deg, #0a3d1f 0%, #0d2d18 40%, #071a0e 100%);
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      z-index: 0; pointer-events: none;
+    }
+    .page-wrapper {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 480px 1fr;
+      min-height: 100vh;
+      padding: 0 24px;
+    }
+    .header {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 8px;
+      border-bottom: 1px solid rgba(34,197,94,0.15);
+      margin-bottom: 32px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--green-fresh), var(--green-mid));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+    }
+    .logo-text { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--white); letter-spacing: -0.3px; }
+    .logo-text span { color: var(--green-fresh); }
+    .back-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 18px;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: 50px; color: rgba(255,255,255,0.8);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px);
+    }
+    .back-btn:hover { background: rgba(34,197,94,0.18); border-color: rgba(34,197,94,0.4); color: var(--white); transform: translateX(-2px); }
+    .side-panel {
+      grid-column: 1; padding: 0 32px 48px 0;
+      display: flex; flex-direction: column; justify-content: center; gap: 32px;
+    }
+    .hero-text { animation: fadeSlideUp 0.8s ease both; }
+    .hero-text h1 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 3vw, 42px); color: var(--white); line-height: 1.2; margin-bottom: 14px; }
+    .hero-text h1 em { color: var(--green-fresh); font-style: italic; }
+    .hero-text p { color: rgba(255,255,255,0.55); font-size: 14px; line-height: 1.7; max-width: 280px; }
+    .stat-cards { display: flex; flex-direction: column; gap: 12px; animation: fadeSlideUp 0.9s ease 0.1s both; }
+    .stat-card {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm); padding: 14px 18px;
+      backdrop-filter: blur(8px); display: flex; align-items: center; gap: 14px;
+    }
+    .stat-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .stat-icon.green { background: rgba(34,197,94,0.2); }
+    .stat-icon.yellow { background: rgba(234,179,8,0.2); }
+    .stat-icon.blue { background: rgba(59,130,246,0.2); }
+    .stat-label { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-val { font-size: 15px; color: var(--white); font-weight: 600; margin-top: 2px; }
+    .form-card {
+      grid-column: 2;
+      background: rgba(255,255,255,0.97);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(34,197,94,0.12);
+      overflow: hidden; display: flex; flex-direction: column;
+      align-self: start; animation: fadeSlideUp 0.7s ease both; margin-bottom: 48px;
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+      padding: 28px 32px 24px; position: relative; overflow: hidden;
+    }
+    .card-header::before {
+      content: '🌾'; position: absolute; right: -10px; top: -16px;
+      font-size: 90px; opacity: 0.12; transform: rotate(-15deg); pointer-events: none;
+    }
+    .card-header h2 { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--white); margin-bottom: 6px; }
+    .card-header p { color: rgba(255,255,255,0.6); font-size: 13px; }
+    .steps {
+      display: flex; padding: 0 32px;
+      border-bottom: 1px solid #f0f0f0; background: #fafafa;
+    }
+    .step {
+      flex: 1; padding: 14px 8px; text-align: center;
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: #aaa; border-bottom: 2px solid transparent; cursor: default; transition: 0.2s;
+    }
+    .step.active { color: var(--green-mid); border-bottom-color: var(--green-fresh); }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #e5e7eb; color: #888; font-size: 10px; margin-right: 6px; transition: 0.2s;
+    }
+    .step.active .step-num { background: var(--green-fresh); color: white; }
+    .card-body { padding: 28px 32px; display: flex; flex-direction: column; gap: 0; }
+    .section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-soft); margin-bottom: 10px; margin-top: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label:first-child { margin-top: 0; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, #e5e7eb, transparent); }
+    .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .input-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .input-row.single { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 11px; font-weight: 600; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field select {
+      padding: 10px 13px; border: 1.5px solid #e5e7eb;
+      border-radius: var(--radius-sm); font-size: 13px; font-family: 'DM Sans', sans-serif;
+      color: var(--text-dark); background: #f9fafb; transition: all 0.2s; outline: none;
+      appearance: none; -webkit-appearance: none;
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--green-fresh); background: white;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+    }
+    .field input::placeholder { color: #bbb; }
+    .field input.has-value { background: white; border-color: #d1fae5; }
+    .location-strip {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0; border-radius: var(--radius-sm);
+      padding: 14px 16px; margin-bottom: 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end;
+    }
+    .autofill-btn {
+      grid-column: 1 / -1; padding: 9px;
+      background: linear-gradient(135deg, var(--green-fresh), #16a34a);
+      border: none; border-radius: 8px; color: white; font-size: 12px; font-weight: 600;
+      font-family: 'DM Sans', sans-serif; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.2s; letter-spacing: 0.3px;
+    }
+    .autofill-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,0.4); }
+    .autofill-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+    .submit-area { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .btn-predict {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--green-fresh) 0%, #16a34a 60%, var(--green-mid) 100%);
+      border: none; border-radius: 12px; color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 9px;
+      transition: all 0.25s; box-shadow: 0 6px 20px rgba(34,197,94,0.35); letter-spacing: 0.2px;
+    }
+    .btn-predict:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(34,197,94,0.45); }
+    .btn-predict:active { transform: translateY(0); }
+    .btn-predict:disabled { background: #d1d5db; box-shadow: none; cursor: not-allowed; transform: none; }
+    .btn-reset {
+      width: 100%; padding: 10px; background: transparent;
+      border: 1.5px solid #e5e7eb; border-radius: 10px; color: #888;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-reset:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
+    #result { margin-top: 16px; border-radius: 12px; overflow: hidden; font-size: 14px; }
+    .result-warning {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 10px; padding: 10px 14px; margin-bottom: 10px;
+      font-size: 12px; color: #92400e; display: flex; gap: 8px; align-items: flex-start;
+    }
+    .result-warning span { flex-shrink: 0; }
+    .result-success {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #86efac; padding: 20px;
+    }
+    .crop-main { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .crop-badge {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--green-fresh), #16a34a);
+      display: flex; align-items: center; justify-content: center; font-size: 24px;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.35);
+    }
+    .crop-info { flex: 1; }
+    .crop-name { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green-deep); }
+    .crop-sub { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+    .confidence-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .conf-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .conf-high     { background: #dcfce7; color: #166534; }
+    .conf-moderate { background: #fef3c7; color: #92400e; }
+    .conf-low      { background: #fee2e2; color: #991b1b; }
+    .conf-dot      { width: 6px; height: 6px; border-radius: 50%; }
+    .conf-high   .conf-dot { background: #16a34a; }
+    .conf-moderate .conf-dot { background: #d97706; }
+    .conf-low    .conf-dot { background: #dc2626; }
+    .conf-bar-wrap { flex: 1; height: 4px; background: #d1fae5; border-radius: 2px; }
+    .conf-bar { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    .conf-bar.high     { background: #22c55e; }
+    .conf-bar.moderate { background: #f59e0b; }
+    .conf-bar.low      { background: #ef4444; }
+    .alt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-soft); margin-bottom: 8px; }
+    .alt-list { display: flex; flex-direction: column; gap: 6px; }
+    .alt-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.7); border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--text-dark);
+    }
+    .alt-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: #d1fae5; border-radius: 2px; }
+    .alt-bar { height: 100%; background: var(--green-fresh); border-radius: 2px; transition: width 0.5s ease; }
+    .alt-pct { font-size: 12px; color: var(--text-soft); font-weight: 600; }
+    .result-error { background: #fef2f2; border: 1px solid #fecaca; padding: 16px 20px; color: #991b1b; border-radius: 12px; }
+    .result-loading { background: #fffbeb; border: 1px solid #fed7aa; padding: 16px 20px; color: #92400e; display: flex; align-items: center; gap: 10px; border-radius: 12px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(146,64,14,0.3); border-top-color: #92400e; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .right-panel {
+      grid-column: 3; padding: 0 0 48px 32px;
+      display: flex; flex-direction: column; justify-content: center; gap: 16px;
+    }
+    .tip-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 18px 20px; backdrop-filter: blur(10px); animation: fadeSlideUp 1s ease 0.2s both; }
+    .tip-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--green-fresh); margin-bottom: 10px; }
+    .tip-card p { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+    .tip-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .tip-list li { font-size: 12px; color: rgba(255,255,255,0.55); padding-left: 16px; position: relative; }
+    .tip-list li::before { content: '→'; position: absolute; left: 0; color: var(--green-fresh); font-size: 10px; top: 1px; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ══════════════════════════════════════════
+       REPORT SECTION STYLES
+    ══════════════════════════════════════════ */
+    .report-section {
+      margin-top: 20px;
+      border-top: 2px dashed #d1fae5;
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .report-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .report-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      color: var(--green-deep);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .report-meta { font-size: 11px; color: var(--text-soft); }
+    .btn-download {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--green-fresh), #16a34a);
+      border: none; border-radius: 8px; color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 3px 10px rgba(34,197,94,0.3);
+    }
+    .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(34,197,94,0.4); }
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .report-stat {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .report-stat .rs-val {
+      font-size: 17px; font-weight: 700;
+      color: var(--green-deep);
+      font-family: 'DM Serif Display', serif;
+      white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .report-stat .rs-lbl {
+      font-size: 10px; color: var(--text-soft);
+      font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.4px; margin-top: 3px;
+    }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .chart-box {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .chart-box.full-width { grid-column: 1 / -1; }
+    .chart-box h4 {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-soft); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .chart-box canvas { width: 100% !important; }
+    .param-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .param-table th {
+      background: #f0fdf4; color: var(--text-mid);
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 8px 10px; text-align: left; font-weight: 700;
+    }
+    .param-table td { padding: 8px 10px; border-bottom: 1px solid #f3f4f6; color: var(--text-dark); }
+    .param-table tr:last-child td { border-bottom: none; }
+    .param-table .status-ok  { color: #16a34a; font-weight: 600; }
+    .param-table .status-mid { color: #d97706; font-weight: 600; }
+    .param-table .status-low { color: #dc2626; font-weight: 600; }
+    .suitability-row { display: flex; flex-direction: column; gap: 8px; }
+    .suit-item {
+      display: grid;
+      grid-template-columns: 100px 1fr 40px;
+      align-items: center; gap: 10px; font-size: 12px;
+    }
+    .suit-label { color: var(--text-dark); font-weight: 500; }
+    .suit-bar-bg { height: 8px; background: #f3f4f6; border-radius: 4px; overflow: hidden; }
+    .suit-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+    .suit-pct { font-size: 11px; color: var(--text-soft); font-weight: 600; text-align: right; }
+
+    @media (max-width: 1100px) { .page-wrapper { grid-template-columns: 1fr 460px; } .right-panel { display: none; } .side-panel { padding-right: 24px; } }
+    @media (max-width: 780px) {
+      .page-wrapper { grid-template-columns: 1fr; padding: 0 16px; }
+      .side-panel { display: none; }
+      .form-card { margin-bottom: 32px; }
+      .header { padding: 16px 0; }
+      .card-body { padding: 20px; }
+      .card-header { padding: 22px 20px 18px; }
+      .steps { padding: 0 20px; }
+      .input-row.three { grid-template-columns: 1fr 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .report-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Print styles for PDF download */
+    @media print {
+      body::before, body::after { display:none !important; }
+      body { background: white !important; }
+      .page-wrapper { display:block !important; background:white; }
+      .header, .side-panel, .right-panel,
+      .card-header, .steps, .section-label,
+      .input-row, .submit-area, .back-btn,
+      .btn-predict, .btn-reset, .btn-download,
+      .result-loading, .result-error { display:none !important; }
+      .form-card {
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+        width: 100% !important; max-width: 100% !important; margin: 0 !important;
+      }
+      .card-body { padding: 12px !important; }
+      #result { margin-top: 0 !important; }
+      .result-success { break-inside: avoid; }
+      .report-section { break-inside: avoid; }
+      .chart-box { break-inside: avoid; border: 1px solid #e5e7eb !important; }
+      canvas { max-height: 220px !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <header class="header">
+    <a class="logo" href="index.html">
+      <div class="logo-icon">🌿</div>
+      <span class="logo-text">Agro<span>Sense</span></span>
+    </a>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Back to Home</button>
+  </header>
+
+  <aside class="side-panel">
+    <div class="hero-text">
+      <h1>Smart <em>Crop</em><br/>Prediction</h1>
+      <p>Enter your soil parameters and location to get AI-powered crop recommendations tailored to your field conditions.</p>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card">
+        <div class="stat-icon green">🌱</div>
+        <div><div class="stat-label">Crops Supported</div><div class="stat-val">22 Crop Types</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow">📍</div>
+        <div><div class="stat-label">Regions Covered</div><div class="stat-val">38 Tamil Nadu Districts</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">🌦️</div>
+        <div><div class="stat-label">Data Source</div><div class="stat-val">Live Weather + Soil DB</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="form-card">
+      <div class="card-header">
+        <h2>Crop Predictor 🌾</h2>
+        <p>Fill in your soil &amp; environment data to get recommendations</p>
+      </div>
+      <div class="steps">
+        <div class="step active" id="step1"><span class="step-num">1</span>Location</div>
+        <div class="step" id="step2"><span class="step-num">2</span>Soil NPK</div>
+        <div class="step" id="step3"><span class="step-num">3</span>Climate</div>
+      </div>
+      <div class="card-body">
+
+        <div class="section-label">Location &amp; Crop Target</div>
+        <div class="input-row">
+          <div class="field">
+            <label>Target Crop</label>
+            <select id="crop">
+              <option value="">— Select Crop —</option>
+              <option value="rice">🌾 Rice</option>
+              <option value="maize">🌽 Maize</option>
+              <option value="chickpea">🟡 Chickpea</option>
+              <option value="kidneybeans">🫘 Kidney Beans</option>
+              <option value="pigeonpeas">🌿 Pigeon Peas</option>
+              <option value="mothbeans">🌱 Moth Beans</option>
+              <option value="mungbean">🫛 Mung Bean</option>
+              <option value="blackgram">⚫ Black Gram</option>
+              <option value="lentil">🟤 Lentil</option>
+              <option value="pomegranate">🍎 Pomegranate</option>
+              <option value="banana">🍌 Banana</option>
+              <option value="mango">🥭 Mango</option>
+              <option value="grapes">🍇 Grapes</option>
+              <option value="watermelon">🍉 Watermelon</option>
+              <option value="muskmelon">🍈 Muskmelon</option>
+              <option value="apple">🍏 Apple</option>
+              <option value="orange">🍊 Orange</option>
+              <option value="papaya">🍑 Papaya</option>
+              <option value="coconut">🥥 Coconut</option>
+              <option value="cotton">🤍 Cotton</option>
+              <option value="jute">🌿 Jute</option>
+              <option value="coffee">☕ Coffee</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>District</label>
+            <select id="district" required>
+              <option value="">— Select District —</option>
+              <option value="ariyalur">Ariyalur</option>
+              <option value="chengalpattu">Chengalpattu</option>
+              <option value="chennai">Chennai</option>
+              <option value="coimbatore">Coimbatore</option>
+              <option value="cuddalore">Cuddalore</option>
+              <option value="dharmapuri">Dharmapuri</option>
+              <option value="dindigul">Dindigul</option>
+              <option value="erode">Erode</option>
+              <option value="kallakurichi">Kallakurichi</option>
+              <option value="kancheepuram">Kancheepuram</option>
+              <option value="kanyakumari">Kanyakumari</option>
+              <option value="karur">Karur</option>
+              <option value="krishnagiri">Krishnagiri</option>
+              <option value="madurai">Madurai</option>
+              <option value="mayiladuthurai">Mayiladuthurai</option>
+              <option value="nagapattinam">Nagapattinam</option>
+              <option value="namakkal">Namakkal</option>
+              <option value="nilgiris">Nilgiris (Ooty)</option>
+              <option value="perambalur">Perambalur</option>
+              <option value="pudukkottai">Pudukkottai</option>
+              <option value="ramanathapuram">Ramanathapuram</option>
+              <option value="ranipet">Ranipet</option>
+              <option value="salem">Salem</option>
+              <option value="sivaganga">Sivaganga</option>
+              <option value="tenkasi">Tenkasi</option>
+              <option value="thanjavur">Thanjavur</option>
+              <option value="theni">Theni</option>
+              <option value="thoothukudi">Thoothukudi</option>
+              <option value="tiruchirappalli">Tiruchirappalli</option>
+              <option value="tirunelveli">Tirunelveli</option>
+              <option value="tirupathur">Tirupathur</option>
+              <option value="tiruppur">Tiruppur</option>
+              <option value="tiruvallur">Tiruvallur</option>
+              <option value="tiruvannamalai">Tiruvannamalai</option>
+              <option value="tiruvarur">Tiruvarur</option>
+              <option value="vellore">Vellore</option>
+              <option value="viluppuram">Viluppuram</option>
+              <option value="virudhunagar">Virudhunagar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="location-strip" id="areaGroup" style="display:none;">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Area / Locality</label>
+            <select id="area"></select>
+          </div>
+          <button class="autofill-btn" onclick="callweather()">
+            🌦️ Auto-fill Weather &amp; Soil Data
+          </button>
+        </div>
+
+        <div class="section-label">Soil Nutrients</div>
+        <div class="input-row three">
+          <div class="field"><label>Nitrogen (N)</label><input id="N" type="number" placeholder="e.g. 90" step="0.01"/></div>
+          <div class="field"><label>Phosphorus (P)</label><input id="P" type="number" placeholder="e.g. 42" step="0.01"/></div>
+          <div class="field"><label>Potassium (K)</label><input id="K" type="number" placeholder="e.g. 43" step="0.01"/></div>
+        </div>
+        <div class="input-row single">
+          <div class="field"><label>Soil pH</label><input id="ph" type="number" placeholder="e.g. 6.5" step="0.01"/></div>
+        </div>
+
+        <div class="section-label">Climate Conditions</div>
+        <div class="input-row">
+          <div class="field"><label>Temperature (°C)</label><input id="temperature" type="number" placeholder="e.g. 20.8" step="0.01"/></div>
+          <div class="field"><label>Humidity (%)</label><input id="humidity" type="number" placeholder="e.g. 82" step="0.01"/></div>
+        </div>
+        <div class="input-row single">
+          <div class="field"><label>Rainfall (mm)</label><input id="rainfall" type="number" placeholder="e.g. 202" step="0.01"/></div>
+        </div>
+
+        <div class="submit-area">
+          <button class="btn-predict" id="submitBtn" onclick="submitForm()">🌾 Predict Best Crop</button>
+          <button class="btn-reset" onclick="location.reload()">↺ Reset All Fields</button>
+        </div>
+
+        <div id="result"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div class="tip-card">
+      <h4>💡 How It Works</h4>
+      <ul class="tip-list">
+        <li>Select your district and area for location-based data</li>
+        <li>Use auto-fill to pull live weather &amp; soil values</li>
+        <li>Adjust values if you have lab-tested soil data</li>
+        <li>Click Predict to get AI recommendations</li>
+      </ul>
+    </div>
+    <div class="tip-card">
+      <h4>📊 Key Parameters</h4>
+      <p>N-P-K values (mg/kg), soil pH (4–9 ideal), temperature, humidity %, and annual rainfall in mm determine crop suitability.</p>
+    </div>
+    <div class="tip-card">
+      <h4>🌡️ Ideal Ranges</h4>
+      <ul class="tip-list">
+        <li>pH: 5.5 – 7.5 for most crops</li>
+        <li>Humidity: 50 – 90% typical</li>
+        <li>Rainfall: 500 – 2500 mm/yr</li>
+      </ul>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+const API_KEY     = "5f1938cd229d207faa2b747752ceb273";
+const BACKEND_URL = "http://127.0.0.1:8003";
+const COFFEE_DISTRICTS = new Set(["nilgiris"]);
+const cropEmoji = {
+  rice:'🌾',maize:'🌽',chickpea:'🟡',kidneybeans:'🫘',pigeonpeas:'🌿',
+  mothbeans:'🌱',mungbean:'🫛',blackgram:'⚫',lentil:'🟤',pomegranate:'🍎',
+  banana:'🍌',mango:'🥭',grapes:'🍇',watermelon:'🍉',muskmelon:'🍈',
+  apple:'🍏',orange:'🍊',papaya:'🍑',coconut:'🥥',cotton:'🤍',jute:'🌿',coffee:'☕'
+};
+
+const soilData = {
+  ariyalur:{n:118,p:44,k:62,ph:7.2,rainfall:820},andimadam:{n:115,p:42,k:60,ph:7.1,rainfall:800},
+  jayankondam:{n:120,p:45,k:63,ph:7.3,rainfall:840},sendurai:{n:112,p:40,k:58,ph:7.0,rainfall:780},
+  tpalur:{n:110,p:39,k:56,ph:7.2,rainfall:770},udayarpalayam:{n:116,p:43,k:61,ph:7.1,rainfall:810},
+  chengalpattu:{n:108,p:40,k:58,ph:6.9,rainfall:950},madurantakam:{n:112,p:42,k:60,ph:7.0,rainfall:920},
+  cheyyur:{n:105,p:38,k:55,ph:7.1,rainfall:980},thiruporur:{n:110,p:41,k:59,ph:6.8,rainfall:960},
+  kelambakkam:{n:108,p:40,k:57,ph:6.9,rainfall:950},vandalur:{n:106,p:39,k:56,ph:7.0,rainfall:930},
+  guduvancheri:{n:109,p:41,k:58,ph:6.9,rainfall:940},urapakkam:{n:107,p:40,k:57,ph:7.0,rainfall:920},
+  padappai:{n:110,p:41,k:59,ph:6.9,rainfall:910},kalpakkam:{n:100,p:36,k:52,ph:7.2,rainfall:990},
+  maraimalainagar:{n:108,p:40,k:58,ph:6.9,rainfall:945},singaperumalkoil:{n:111,p:42,k:60,ph:7.0,rainfall:930},
+  tirukalukundram:{n:106,p:39,k:56,ph:7.1,rainfall:960},
+  adyar:{n:102,p:38,k:55,ph:6.7,rainfall:880},annanagar:{n:108,p:40,k:62,ph:7.0,rainfall:820},
+  ambattur:{n:112,p:41,k:59,ph:6.9,rainfall:840},avadi:{n:105,p:39,k:54,ph:7.2,rainfall:800},
+  bestanagar:{n:98,p:35,k:50,ph:6.8,rainfall:900},chromepet:{n:114,p:43,k:60,ph:6.9,rainfall:870},
+  guindy:{n:100,p:37,k:50,ph:6.8,rainfall:850},mylapore:{n:90,p:34,k:46,ph:7.0,rainfall:820},
+  omr:{n:108,p:40,k:57,ph:6.8,rainfall:890},perambur:{n:115,p:42,k:58,ph:6.8,rainfall:840},
+  sholinganallur:{n:118,p:45,k:63,ph:6.6,rainfall:900},tambaram:{n:120,p:46,k:60,ph:6.9,rainfall:870},
+  tondiarpet:{n:95,p:35,k:48,ph:7.3,rainfall:800},velachery:{n:110,p:44,k:57,ph:6.8,rainfall:860},
+  ennore:{n:95,p:35,k:48,ph:7.3,rainfall:810},manali:{n:96,p:36,k:49,ph:7.2,rainfall:805},
+  madhavaram:{n:110,p:41,k:58,ph:6.9,rainfall:830},kolathur:{n:108,p:40,k:57,ph:6.9,rainfall:825},
+  nungambakkam:{n:105,p:38,k:55,ph:6.9,rainfall:840},egmore:{n:100,p:36,k:52,ph:7.0,rainfall:830},
+  kodambakkam:{n:104,p:38,k:54,ph:6.9,rainfall:845},kilpauk:{n:102,p:37,k:52,ph:6.9,rainfall:835},
+  tnagar:{n:103,p:38,k:53,ph:6.9,rainfall:840},vadapalani:{n:106,p:39,k:55,ph:6.9,rainfall:845},
+  koyambedu:{n:105,p:38,k:54,ph:7.0,rainfall:840},saidapet:{n:102,p:37,k:52,ph:6.9,rainfall:842},
+  taramani:{n:107,p:39,k:56,ph:6.8,rainfall:875},thiruvanmiyur:{n:105,p:38,k:55,ph:6.8,rainfall:880},
+  pallikaranai:{n:108,p:40,k:57,ph:6.9,rainfall:890},madipakkam:{n:109,p:40,k:57,ph:6.9,rainfall:875},
+  medavakkam:{n:110,p:41,k:58,ph:6.9,rainfall:870},pallavaram:{n:112,p:41,k:59,ph:6.9,rainfall:860},
+  alandur:{n:108,p:40,k:57,ph:6.9,rainfall:855},maduravoyal:{n:107,p:39,k:56,ph:7.0,rainfall:845},
+  valasaravakkam:{n:106,p:39,k:55,ph:7.0,rainfall:848},kundrathur:{n:104,p:38,k:55,ph:7.0,rainfall:840},
+  mangadu:{n:106,p:39,k:56,ph:7.0,rainfall:850},villivakkam:{n:107,p:40,k:56,ph:6.9,rainfall:832},
+  vyasarpadi:{n:105,p:38,k:54,ph:7.0,rainfall:828},royapuram:{n:96,p:35,k:49,ph:7.2,rainfall:815},
+  thiruvottiyur:{n:95,p:35,k:48,ph:7.3,rainfall:812},porur:{n:106,p:39,k:55,ph:7.0,rainfall:843},
+  coimbatore:{n:125,p:48,k:70,ph:7.5,rainfall:680},pollachi:{n:130,p:50,k:72,ph:7.4,rainfall:750},
+  mettupalayam:{n:118,p:44,k:65,ph:6.8,rainfall:900},sulur:{n:120,p:46,k:68,ph:7.3,rainfall:700},
+  kinathukadavu:{n:128,p:49,k:70,ph:7.4,rainfall:720},annur:{n:115,p:43,k:64,ph:7.0,rainfall:740},
+  karamadai:{n:117,p:44,k:65,ph:6.9,rainfall:900},madukkarai:{n:122,p:47,k:68,ph:7.3,rainfall:710},
+  perur:{n:120,p:46,k:67,ph:7.2,rainfall:690},singanallur:{n:116,p:43,k:63,ph:7.1,rainfall:680},
+  saravanampatti:{n:118,p:44,k:65,ph:7.0,rainfall:685},peelamedu:{n:119,p:45,k:66,ph:7.2,rainfall:680},
+  cuddalore:{n:125,p:50,k:68,ph:7.4,rainfall:1050},chidambaram:{n:128,p:52,k:70,ph:7.3,rainfall:1100},
+  panruti:{n:120,p:47,k:65,ph:7.2,rainfall:1000},virudhachalam:{n:118,p:45,k:64,ph:7.1,rainfall:950},
+  neyveli:{n:115,p:43,k:62,ph:6.8,rainfall:980},kattumannarkoil:{n:122,p:48,k:67,ph:7.3,rainfall:1080},
+  bhuvanagiri:{n:120,p:46,k:65,ph:7.2,rainfall:1020},parangipettai:{n:118,p:44,k:63,ph:7.4,rainfall:1120},
+  dharmapuri:{n:108,p:38,k:55,ph:6.5,rainfall:820},palacode:{n:105,p:36,k:52,ph:6.4,rainfall:800},
+  pennagaram:{n:102,p:35,k:50,ph:6.3,rainfall:790},harur:{n:100,p:34,k:48,ph:6.5,rainfall:810},
+  nallampalli:{n:104,p:36,k:52,ph:6.4,rainfall:805},karimangalam:{n:106,p:37,k:53,ph:6.6,rainfall:815},
+  papireddipatti:{n:103,p:35,k:51,ph:6.5,rainfall:800},morappur:{n:101,p:34,k:49,ph:6.4,rainfall:790},
+  dindigul:{n:115,p:42,k:62,ph:7.0,rainfall:780},palani:{n:108,p:38,k:56,ph:6.5,rainfall:950},
+  kodaikanal:{n:90,p:30,k:45,ph:5.5,rainfall:1380},natham:{n:112,p:40,k:58,ph:6.9,rainfall:760},
+  oddanchatram:{n:110,p:40,k:57,ph:7.0,rainfall:740},vedasandur:{n:108,p:38,k:55,ph:6.8,rainfall:750},
+  nilakottai:{n:105,p:37,k:53,ph:6.9,rainfall:730},batlagundu:{n:114,p:41,k:60,ph:7.0,rainfall:760},
+  erode:{n:128,p:50,k:72,ph:7.4,rainfall:700},bhavani:{n:125,p:48,k:70,ph:7.3,rainfall:720},
+  gobichettipalayam:{n:122,p:46,k:68,ph:7.2,rainfall:710},perundurai:{n:120,p:45,k:67,ph:7.1,rainfall:700},
+  sathyamangalam:{n:115,p:42,k:63,ph:6.8,rainfall:900},nambiyur:{n:112,p:40,k:60,ph:6.7,rainfall:850},
+  anthiyur:{n:110,p:39,k:58,ph:6.8,rainfall:830},modakurichi:{n:118,p:44,k:65,ph:7.2,rainfall:710},
+  kallakurichi:{n:115,p:42,k:60,ph:7.0,rainfall:900},ulundurpettai:{n:112,p:40,k:58,ph:6.9,rainfall:880},
+  sankarapuram:{n:110,p:39,k:57,ph:7.0,rainfall:890},chinnasalem:{n:108,p:38,k:55,ph:6.8,rainfall:870},
+  tirukoilur:{n:113,p:41,k:59,ph:7.1,rainfall:910},rishivandiyam:{n:109,p:39,k:56,ph:6.9,rainfall:860},
+  kancheepuram:{n:112,p:42,k:60,ph:6.9,rainfall:920},sriperumbudur:{n:108,p:40,k:58,ph:7.0,rainfall:880},
+  uthiramerur:{n:110,p:41,k:59,ph:7.0,rainfall:870},walajabad:{n:106,p:38,k:56,ph:7.1,rainfall:850},
+  oragadam:{n:109,p:40,k:58,ph:6.9,rainfall:880},kolapakkam:{n:105,p:38,k:55,ph:7.0,rainfall:870},
+  pozhichalur:{n:104,p:37,k:54,ph:7.1,rainfall:865},pammal:{n:105,p:38,k:55,ph:7.0,rainfall:872},
+  anakaputhur:{n:106,p:39,k:56,ph:7.0,rainfall:868},thiruneermalai:{n:104,p:37,k:54,ph:7.1,rainfall:862},
+  perungalathur:{n:105,p:38,k:55,ph:6.9,rainfall:875},
+  nagercoil:{n:115,p:45,k:62,ph:6.5,rainfall:1500},thuckalay:{n:112,p:43,k:60,ph:6.4,rainfall:1550},
+  padmanabhapuram:{n:110,p:42,k:58,ph:6.5,rainfall:1480},colachel:{n:108,p:40,k:56,ph:6.6,rainfall:1580},
+  kuzhithurai:{n:113,p:44,k:61,ph:6.4,rainfall:1560},marthandam:{n:114,p:44,k:62,ph:6.5,rainfall:1520},
+  eraniel:{n:109,p:41,k:57,ph:6.6,rainfall:1510},rajakkamangalam:{n:111,p:42,k:59,ph:6.5,rainfall:1490},
+  boothapandi:{n:110,p:41,k:58,ph:6.5,rainfall:1500},
+  karur:{n:125,p:48,k:70,ph:7.5,rainfall:840},kulithalai:{n:122,p:46,k:68,ph:7.4,rainfall:850},
+  krishnarayapuram:{n:118,p:44,k:65,ph:7.3,rainfall:820},aravakurichi:{n:120,p:45,k:67,ph:7.4,rainfall:830},
+  thanthoni:{n:116,p:43,k:63,ph:7.3,rainfall:840},pugalur:{n:119,p:44,k:66,ph:7.4,rainfall:835},
+  kadavur:{n:117,p:43,k:64,ph:7.3,rainfall:825},
+  krishnagiri:{n:105,p:37,k:53,ph:6.4,rainfall:780},hosur:{n:100,p:35,k:50,ph:6.3,rainfall:820},
+  denkanikottai:{n:98,p:33,k:48,ph:6.2,rainfall:900},uthangarai:{n:102,p:35,k:51,ph:6.4,rainfall:760},
+  bargur:{n:104,p:36,k:52,ph:6.5,rainfall:770},shoolagiri:{n:102,p:35,k:51,ph:6.3,rainfall:800},
+  kelamangalam:{n:99,p:34,k:49,ph:6.3,rainfall:850},mathigiri:{n:101,p:35,k:50,ph:6.3,rainfall:810},
+  madurai:{n:118,p:44,k:63,ph:7.2,rainfall:850},melur:{n:115,p:42,k:61,ph:7.1,rainfall:820},
+  usilampatti:{n:112,p:40,k:58,ph:7.0,rainfall:780},peraiyur:{n:110,p:39,k:57,ph:7.0,rainfall:790},
+  thirumangalam:{n:116,p:43,k:62,ph:7.1,rainfall:830},vadipatti:{n:113,p:41,k:59,ph:7.0,rainfall:810},
+  sholavandan:{n:115,p:42,k:61,ph:7.1,rainfall:840},paravai:{n:117,p:43,k:62,ph:7.2,rainfall:855},
+  avaniyapuram:{n:116,p:42,k:61,ph:7.1,rainfall:845},
+  mayiladuthurai:{n:130,p:52,k:74,ph:7.3,rainfall:1050},sirkazhi:{n:128,p:50,k:72,ph:7.3,rainfall:1070},
+  tharangambadi:{n:122,p:47,k:68,ph:7.5,rainfall:1120},kuthalam:{n:125,p:49,k:70,ph:7.2,rainfall:1030},
+  sembanarkoil:{n:128,p:51,k:73,ph:7.3,rainfall:1050},papanasam:{n:130,p:52,k:74,ph:7.2,rainfall:1000},
+  poompuhar:{n:120,p:46,k:66,ph:7.4,rainfall:1100},
+  nagapattinam:{n:125,p:50,k:70,ph:7.5,rainfall:1150},vedaranyam:{n:120,p:46,k:66,ph:7.6,rainfall:1200},
+  kilvelur:{n:122,p:48,k:68,ph:7.4,rainfall:1100},nagore:{n:115,p:43,k:62,ph:7.5,rainfall:1160},
+  namakkal:{n:115,p:43,k:62,ph:6.8,rainfall:760},rasipuram:{n:112,p:41,k:60,ph:6.7,rainfall:750},
+  tiruchengode:{n:110,p:40,k:58,ph:6.8,rainfall:740},kumarapalayam:{n:118,p:44,k:64,ph:7.0,rainfall:720},
+  mohanur:{n:113,p:41,k:60,ph:6.8,rainfall:755},erumapatty:{n:109,p:39,k:57,ph:6.7,rainfall:745},
+  vennandur:{n:108,p:38,k:56,ph:6.7,rainfall:740},
+  ooty:{n:95,p:32,k:48,ph:5.8,rainfall:1850},coonoor:{n:98,p:34,k:50,ph:5.6,rainfall:1920},
+  kotagiri:{n:88,p:30,k:44,ph:5.5,rainfall:1650},gudalur:{n:110,p:40,k:58,ph:5.9,rainfall:2100},
+  pandalur:{n:108,p:38,k:55,ph:6.0,rainfall:2050},kundah:{n:90,p:28,k:42,ph:5.4,rainfall:1750},
+  lovedale:{n:94,p:31,k:47,ph:5.7,rainfall:1880},wellington:{n:96,p:33,k:49,ph:5.8,rainfall:1830},
+  naduvattam:{n:102,p:36,k:52,ph:6.1,rainfall:1950},devala:{n:106,p:37,k:54,ph:6.0,rainfall:2000},
+  thiashola:{n:87,p:28,k:41,ph:5.3,rainfall:1680},sholur:{n:100,p:35,k:51,ph:5.9,rainfall:1900},
+  emerald:{n:92,p:30,k:45,ph:5.5,rainfall:1800},yellanalli:{n:85,p:27,k:40,ph:5.3,rainfall:1650},
+  avalanche:{n:88,p:29,k:43,ph:5.4,rainfall:1700},
+  perambalur:{n:112,p:40,k:58,ph:7.0,rainfall:880},veppur:{n:108,p:38,k:56,ph:7.0,rainfall:870},
+  kunnam:{n:110,p:39,k:57,ph:7.1,rainfall:860},alathur:{n:109,p:39,k:57,ph:7.0,rainfall:875},
+  esanai:{n:106,p:37,k:54,ph:7.0,rainfall:865},kurumbalur:{n:111,p:40,k:58,ph:7.1,rainfall:880},
+  pudukkottai:{n:118,p:44,k:63,ph:7.2,rainfall:900},aranthangi:{n:120,p:46,k:65,ph:7.3,rainfall:920},
+  karambakkudi:{n:115,p:42,k:61,ph:7.1,rainfall:890},gandarvakottai:{n:116,p:43,k:62,ph:7.2,rainfall:895},
+  iluppur:{n:114,p:41,k:60,ph:7.1,rainfall:885},thirumayam:{n:117,p:43,k:62,ph:7.2,rainfall:900},
+  viralimalai:{n:115,p:42,k:61,ph:7.1,rainfall:885},avudaiyarkoil:{n:116,p:43,k:62,ph:7.2,rainfall:895},
+  ramanathapuram:{n:100,p:36,k:52,ph:7.6,rainfall:700},rameswaram:{n:88,p:30,k:44,ph:7.8,rainfall:650},
+  paramakudi:{n:102,p:37,k:53,ph:7.5,rainfall:710},tiruvadanai:{n:98,p:34,k:50,ph:7.6,rainfall:720},
+  mudukulathur:{n:100,p:36,k:52,ph:7.5,rainfall:700},kamuthi:{n:104,p:37,k:53,ph:7.5,rainfall:710},
+  kilakarai:{n:96,p:33,k:49,ph:7.7,rainfall:740},mandapam:{n:90,p:31,k:45,ph:7.8,rainfall:680},
+  ranipet:{n:108,p:40,k:58,ph:6.7,rainfall:950},arcot:{n:110,p:41,k:59,ph:6.8,rainfall:960},
+  walajapet:{n:106,p:38,k:56,ph:6.7,rainfall:940},sholinghur:{n:104,p:37,k:55,ph:6.8,rainfall:930},
+  arakkonam:{n:109,p:40,k:58,ph:6.8,rainfall:970},nemili:{n:105,p:38,k:56,ph:6.7,rainfall:945},
+  kalavai:{n:107,p:39,k:57,ph:6.7,rainfall:955},
+  salem:{n:120,p:46,k:66,ph:7.0,rainfall:850},mettur:{n:118,p:44,k:64,ph:6.9,rainfall:900},
+  omalur:{n:116,p:43,k:63,ph:7.0,rainfall:840},yercaud:{n:100,p:36,k:52,ph:5.8,rainfall:1380},
+  attur:{n:115,p:42,k:62,ph:6.9,rainfall:830},valapady:{n:112,p:40,k:60,ph:6.8,rainfall:870},
+  edappadi:{n:118,p:44,k:65,ph:7.1,rainfall:820},gangavalli:{n:114,p:41,k:61,ph:6.9,rainfall:835},
+  sivaganga:{n:118,p:44,k:63,ph:7.3,rainfall:820},karaikudi:{n:120,p:46,k:65,ph:7.4,rainfall:830},
+  devakottai:{n:116,p:43,k:62,ph:7.3,rainfall:810},manamadurai:{n:115,p:42,k:61,ph:7.2,rainfall:800},
+  illayangudi:{n:114,p:41,k:60,ph:7.2,rainfall:810},singampunari:{n:116,p:43,k:62,ph:7.3,rainfall:815},
+  tenkasi:{n:115,p:44,k:63,ph:6.5,rainfall:1200},courtallam:{n:108,p:40,k:57,ph:6.2,rainfall:1350},
+  sankarankovil:{n:112,p:42,k:61,ph:6.6,rainfall:950},kadayanallur:{n:114,p:43,k:62,ph:6.6,rainfall:920},
+  alangulam:{n:110,p:40,k:58,ph:6.5,rainfall:900},shencottah:{n:112,p:41,k:60,ph:6.4,rainfall:1280},
+  puliyangudi:{n:113,p:42,k:61,ph:6.6,rainfall:940},
+  thanjavur:{n:135,p:55,k:78,ph:7.2,rainfall:950},kumbakonam:{n:138,p:57,k:80,ph:7.1,rainfall:980},
+  pattukottai:{n:128,p:51,k:73,ph:7.3,rainfall:1020},orathanadu:{n:130,p:52,k:75,ph:7.2,rainfall:940},
+  thiruvaiyaru:{n:135,p:54,k:77,ph:7.1,rainfall:955},peravurani:{n:128,p:50,k:72,ph:7.3,rainfall:1000},
+  vallam:{n:133,p:53,k:76,ph:7.2,rainfall:950},
+  theni:{n:118,p:44,k:63,ph:6.8,rainfall:950},bodinayakanur:{n:115,p:42,k:61,ph:6.7,rainfall:980},
+  periyakulam:{n:112,p:40,k:58,ph:6.6,rainfall:1020},uthamapalayam:{n:116,p:43,k:62,ph:6.8,rainfall:960},
+  andipatti:{n:113,p:41,k:59,ph:6.7,rainfall:940},cumbum:{n:114,p:42,k:60,ph:6.6,rainfall:990},
+  kambam:{n:115,p:42,k:61,ph:6.7,rainfall:970},
+  thoothukudi:{n:102,p:37,k:53,ph:7.5,rainfall:680},tiruchendur:{n:98,p:34,k:50,ph:7.6,rainfall:720},
+  kovilpatti:{n:108,p:40,k:57,ph:7.3,rainfall:660},vilathikulam:{n:104,p:37,k:53,ph:7.4,rainfall:670},
+  ottapidaram:{n:106,p:38,k:54,ph:7.4,rainfall:665},sathankulam:{n:105,p:37,k:53,ph:7.4,rainfall:675},
+  kayalpattinam:{n:100,p:35,k:51,ph:7.6,rainfall:700},
+  tiruchirappalli:{n:125,p:48,k:70,ph:7.3,rainfall:900},lalgudi:{n:128,p:50,k:72,ph:7.2,rainfall:930},
+  manachanallur:{n:122,p:46,k:68,ph:7.2,rainfall:910},musiri:{n:120,p:45,k:67,ph:7.1,rainfall:890},
+  srirangam:{n:130,p:52,k:74,ph:7.2,rainfall:920},thottiyam:{n:118,p:44,k:65,ph:7.1,rainfall:880},
+  thiruverumbur:{n:124,p:47,k:69,ph:7.2,rainfall:905},ariyamangalam:{n:122,p:46,k:68,ph:7.2,rainfall:900},
+  tirunelveli:{n:115,p:43,k:62,ph:7.1,rainfall:750},palayamkottai:{n:114,p:42,k:61,ph:7.1,rainfall:755},
+  nanguneri:{n:110,p:40,k:58,ph:7.0,rainfall:900},radhapuram:{n:106,p:38,k:55,ph:7.2,rainfall:820},
+  cheranmahadevi:{n:112,p:41,k:60,ph:6.9,rainfall:980},ambasamudram:{n:114,p:42,k:61,ph:6.8,rainfall:1050},
+  valliyoor:{n:108,p:39,k:57,ph:7.1,rainfall:800},
+  tirupathur:{n:106,p:38,k:55,ph:6.6,rainfall:960},vaniyambadi:{n:108,p:39,k:57,ph:6.7,rainfall:940},
+  ambur:{n:110,p:40,k:58,ph:6.8,rainfall:950},jolarpettai:{n:105,p:37,k:54,ph:6.6,rainfall:970},
+  natrampalli:{n:104,p:36,k:53,ph:6.5,rainfall:955},gudiyatham:{n:107,p:38,k:56,ph:6.7,rainfall:945},
+  alangayam:{n:103,p:36,k:53,ph:6.5,rainfall:960},pernambut:{n:106,p:38,k:55,ph:6.6,rainfall:950},
+  tiruppur:{n:125,p:48,k:70,ph:7.4,rainfall:680},dharapuram:{n:122,p:46,k:68,ph:7.4,rainfall:660},
+  udumalaipettai:{n:120,p:45,k:67,ph:7.3,rainfall:700},palladam:{n:118,p:44,k:66,ph:7.3,rainfall:670},
+  kangeyam:{n:120,p:46,k:68,ph:7.4,rainfall:660},avinashi:{n:122,p:46,k:68,ph:7.3,rainfall:685},
+  sulthanpet:{n:116,p:43,k:63,ph:7.2,rainfall:690},mulanur:{n:118,p:44,k:65,ph:7.3,rainfall:665},
+  uthukuli:{n:119,p:45,k:66,ph:7.3,rainfall:675},
+  tiruvallur:{n:115,p:45,k:62,ph:7.3,rainfall:880},ponneri:{n:125,p:50,k:68,ph:7.5,rainfall:900},
+  gummidipoondi:{n:122,p:48,k:66,ph:7.4,rainfall:910},kavaraipettai:{n:118,p:44,k:63,ph:7.2,rainfall:870},
+  uthukottai:{n:110,p:42,k:60,ph:7.1,rainfall:850},pattabiram:{n:108,p:40,k:58,ph:7.0,rainfall:860},
+  poonamallee:{n:112,p:43,k:61,ph:7.2,rainfall:890},minjur:{n:120,p:46,k:64,ph:7.4,rainfall:920},
+  tiruttani:{n:105,p:38,k:55,ph:6.9,rainfall:840},cholavaram:{n:117,p:44,k:60,ph:7.3,rainfall:885},
+  veppampattu:{n:111,p:41,k:59,ph:7.1,rainfall:865},sevvapet:{n:109,p:40,k:57,ph:7.1,rainfall:855},
+  perambakkam:{n:113,p:42,k:60,ph:7.2,rainfall:870},kadambathur:{n:110,p:41,k:58,ph:7.1,rainfall:850},
+  arani:{n:108,p:39,k:57,ph:7.0,rainfall:845},
+  tiruvannamalai:{n:112,p:41,k:59,ph:6.8,rainfall:950},polur:{n:108,p:39,k:57,ph:6.7,rainfall:900},
+  cheyyar:{n:110,p:40,k:58,ph:6.8,rainfall:930},vandavasi:{n:109,p:39,k:57,ph:6.8,rainfall:920},
+  kalasapakkam:{n:106,p:37,k:55,ph:6.7,rainfall:910},chetpet:{n:107,p:38,k:56,ph:6.7,rainfall:905},
+  kilpennathur:{n:105,p:37,k:54,ph:6.7,rainfall:915},thandrampet:{n:108,p:39,k:57,ph:6.8,rainfall:940},
+  tiruvarur:{n:132,p:53,k:75,ph:7.3,rainfall:1020},mannargudi:{n:135,p:55,k:78,ph:7.2,rainfall:1050},
+  thiruthuraipoondi:{n:128,p:51,k:73,ph:7.4,rainfall:1100},needamangalam:{n:130,p:52,k:74,ph:7.3,rainfall:1030},
+  muthupettai:{n:125,p:49,k:71,ph:7.5,rainfall:1120},kodavasal:{n:132,p:53,k:75,ph:7.3,rainfall:1040},
+  valangaiman:{n:130,p:52,k:74,ph:7.2,rainfall:1025},nannilam:{n:128,p:51,k:73,ph:7.3,rainfall:1035},
+  vellore:{n:110,p:41,k:59,ph:6.7,rainfall:880},katpadi:{n:108,p:40,k:58,ph:6.8,rainfall:870},
+  anaicut:{n:106,p:38,k:56,ph:6.7,rainfall:860},kaniyambadi:{n:107,p:39,k:57,ph:6.7,rainfall:865},
+  sathuvachari:{n:108,p:39,k:57,ph:6.8,rainfall:875},
+  viluppuram:{n:114,p:42,k:61,ph:7.0,rainfall:950},tindivanam:{n:112,p:41,k:60,ph:7.0,rainfall:980},
+  gingee:{n:108,p:39,k:57,ph:6.9,rainfall:920},marakanam:{n:106,p:38,k:55,ph:7.2,rainfall:1020},
+  vikravandi:{n:110,p:40,k:58,ph:7.0,rainfall:940},
+  virudhunagar:{n:115,p:43,k:62,ph:7.1,rainfall:760},sivakasi:{n:112,p:41,k:60,ph:7.0,rainfall:740},
+  srivilliputhur:{n:118,p:44,k:63,ph:7.0,rainfall:800},rajapalayam:{n:120,p:46,k:65,ph:6.8,rainfall:900},
+  aruppukkottai:{n:116,p:43,k:62,ph:7.1,rainfall:760},kariapatti:{n:113,p:41,k:60,ph:7.1,rainfall:740},
+  watrap:{n:114,p:42,k:61,ph:7.0,rainfall:770},sattur:{n:112,p:40,k:59,ph:7.1,rainfall:745}
+};
+
+const areaData = {
+  ariyalur:["Ariyalur","Andimadam","Jayankondam","Sendurai","T. Palur","Udayarpalayam"],
+  chengalpattu:["Chengalpattu","Madurantakam","Cheyyur","Thiruporur","Kelambakkam","Vandalur","Guduvancheri","Urapakkam","Padappai","Kalpakkam","Maraimalai Nagar","Singaperumalkoil","Tirukalukundram"],
+  chennai:["Adyar","Anna Nagar","Ambattur","Avadi","Besant Nagar","Chromepet","Egmore","Guindy","Kilpauk","Kodambakkam","Kolathur","Koyambedu","Madhavaram","Mylapore","Nungambakkam","OMR","Pallavaram","Perambur","Porur","Royapuram","Saidapet","Sholinganallur","T. Nagar","Tambaram","Taramani","Thiruvanmiyur","Thiruvottiyur","Tondiarpet","Vadapalani","Valasaravakkam","Velachery","Villivakkam","Vyasarpadi","Manali","Ennore","Madipakkam","Pallikaranai","Alandur"],
+  coimbatore:["Coimbatore","Pollachi","Mettupalayam","Sulur","Kinathukadavu","Annur","Karamadai","Madukkarai","Perur","Singanallur","Saravanampatti","Peelamedu"],
+  cuddalore:["Cuddalore","Chidambaram","Panruti","Virudhachalam","Neyveli","Kattumannarkoil","Bhuvanagiri","Parangipettai"],
+  dharmapuri:["Dharmapuri","Palacode","Pennagaram","Harur","Nallampalli","Karimangalam","Papireddipatti","Morappur"],
+  dindigul:["Dindigul","Palani","Kodaikanal","Natham","Oddanchatram","Vedasandur","Nilakottai","Batlagundu"],
+  erode:["Erode","Bhavani","Gobichettipalayam","Perundurai","Sathyamangalam","Nambiyur","Anthiyur","Modakurichi"],
+  kallakurichi:["Kallakurichi","Ulundurpettai","Sankarapuram","Chinnasalem","Tirukoilur","Rishivandiyam"],
+  kancheepuram:["Kancheepuram","Sriperumbudur","Uthiramerur","Walajabad","Oragadam","Kundrathur","Mangadu","Kolapakkam","Pozhichalur","Pammal","Anakaputhur","Thiruneermalai","Perungalathur"],
+  kanyakumari:["Nagercoil","Thuckalay","Padmanabhapuram","Colachel","Kuzhithurai","Marthandam","Eraniel","Rajakkamangalam","Boothapandi"],
+  karur:["Karur","Kulithalai","Krishnarayapuram","Aravakurichi","Thanthoni","Pugalur","Kadavur"],
+  krishnagiri:["Krishnagiri","Hosur","Denkanikottai","Uthangarai","Bargur","Shoolagiri","Kelamangalam","Mathigiri"],
+  madurai:["Madurai","Melur","Usilampatti","Peraiyur","Thirumangalam","Vadipatti","Sholavandan","Paravai","Avaniyapuram"],
+  mayiladuthurai:["Mayiladuthurai","Sirkazhi","Tharangambadi","Kuthalam","Sembanarkoil","Papanasam","Poompuhar"],
+  nagapattinam:["Nagapattinam","Vedaranyam","Kilvelur","Nagore"],
+  namakkal:["Namakkal","Rasipuram","Tiruchengode","Kumarapalayam","Mohanur","Erumapatty","Vennandur"],
+  nilgiris:["Ooty","Coonoor","Kotagiri","Gudalur","Pandalur","Kundah","Lovedale","Wellington","Naduvattam","Devala","Thiashola","Sholur","Emerald","Yellanalli","Avalanche"],
+  perambalur:["Perambalur","Veppur","Kunnam","Alathur","Esanai","Kurumbalur"],
+  pudukkottai:["Pudukkottai","Aranthangi","Karambakkudi","Gandarvakottai","Iluppur","Thirumayam","Viralimalai","Avudaiyarkoil"],
+  ramanathapuram:["Ramanathapuram","Rameswaram","Paramakudi","Tiruvadanai","Mudukulathur","Kamuthi","Kilakarai","Mandapam"],
+  ranipet:["Ranipet","Arcot","Walajapet","Sholinghur","Arakkonam","Nemili","Kalavai"],
+  salem:["Salem","Mettur","Omalur","Yercaud","Attur","Valapady","Edappadi","Gangavalli"],
+  sivaganga:["Sivaganga","Karaikudi","Devakottai","Manamadurai","Illayangudi","Singampunari"],
+  tenkasi:["Tenkasi","Courtallam","Sankarankovil","Kadayanallur","Alangulam","Shencottah","Puliyangudi"],
+  thanjavur:["Thanjavur","Kumbakonam","Papanasam","Pattukottai","Orathanadu","Thiruvaiyaru","Peravurani","Vallam"],
+  theni:["Theni","Bodinayakanur","Periyakulam","Uthamapalayam","Andipatti","Cumbum","Kambam"],
+  thoothukudi:["Thoothukudi","Tiruchendur","Kovilpatti","Vilathikulam","Ottapidaram","Sathankulam","Kayalpattinam"],
+  tiruchirappalli:["Tiruchirappalli","Lalgudi","Manachanallur","Musiri","Srirangam","Thottiyam","Thiruverumbur","Ariyamangalam"],
+  tirunelveli:["Tirunelveli","Palayamkottai","Nanguneri","Radhapuram","Cheranmahadevi","Ambasamudram","Valliyoor"],
+  tirupathur:["Tirupathur","Vaniyambadi","Ambur","Jolarpettai","Natrampalli","Gudiyatham","Alangayam","Pernambut"],
+  tiruppur:["Tiruppur","Dharapuram","Udumalaipettai","Palladam","Kangeyam","Avinashi","Sulthanpet","Mulanur","Uthukuli"],
+  tiruvallur:["Tiruvallur","Ponneri","Gummidipoondi","Kavaraipettai","Uthukottai","Pattabiram","Poonamallee","Minjur","Tiruttani","Cholavaram","Veppampattu","Sevvapet","Perambakkam","Kadambathur","Arani"],
+  tiruvannamalai:["Tiruvannamalai","Polur","Cheyyar","Vandavasi","Kalasapakkam","Chetpet","Kilpennathur","Thandrampet"],
+  tiruvarur:["Tiruvarur","Mannargudi","Thiruthuraipoondi","Needamangalam","Muthupettai","Kodavasal","Valangaiman","Nannilam"],
+  vellore:["Vellore","Katpadi","Anaicut","Kaniyambadi","Sathuvachari"],
+  viluppuram:["Viluppuram","Tindivanam","Gingee","Marakanam","Vikravandi"],
+  virudhunagar:["Virudhunagar","Sivakasi","Srivilliputhur","Rajapalayam","Aruppukkottai","Kariapatti","Watrap","Sattur"]
+};
+
+let currentDistrict = "";
+
+document.getElementById("district").addEventListener("change", function() {
+  currentDistrict = this.value;
+  const areaSelect = document.getElementById("area");
+  const areaGroup  = document.getElementById("areaGroup");
+  areaSelect.innerHTML = "";
+  if (areaData[currentDistrict]) {
+    areaGroup.style.display = "grid";
+    areaData[currentDistrict].forEach(area => {
+      const opt = document.createElement("option");
+      opt.value = area.toLowerCase().replace(/\s/g, "");
+      opt.textContent = area;
+      areaSelect.appendChild(opt);
+    });
+    document.getElementById("step1").classList.add("active");
+  } else {
+    areaGroup.style.display = "none";
+  }
+});
+
+async function callweather() {
+  const btn  = document.querySelector(".autofill-btn");
+  const area = document.getElementById("area").value;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:white;border-color:rgba(255,255,255,0.3);"></div> Fetching…';
+  try {
+    const url  = `https://api.openweathermap.org/data/2.5/weather?q=${area}&appid=${API_KEY}&units=metric`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    document.getElementById("temperature").value = data.main.temp;
+    const soil = soilData[area] || {};
+    if (soil.n !== undefined) {
+      document.getElementById("N").value        = soil.n;
+      document.getElementById("P").value        = soil.p;
+      document.getElementById("K").value        = soil.k;
+      document.getElementById("ph").value       = soil.ph;
+      document.getElementById("rainfall").value = soil.rainfall;
+      document.getElementById("humidity").value = getTypicalHumidity(currentDistrict, area);
+    }
+    ["N","P","K","ph","temperature","humidity","rainfall"].forEach(id => {
+      document.getElementById(id).classList.add("has-value");
+    });
+    btn.innerHTML = "✅ Data Filled!";
+    btn.style.background = "linear-gradient(135deg,#16a34a,#0d9252)";
+    document.getElementById("step2").classList.add("active");
+    document.getElementById("step3").classList.add("active");
+  } catch(err) {
+    btn.innerHTML = "❌ Failed — Enter Manually";
+    btn.style.background = "#ef4444";
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.innerHTML = "🌦️ Auto-fill Weather &amp; Soil Data";
+      btn.style.background = "";
+    }, 3000);
+  }
+}
+
+function getTypicalHumidity(district, area) {
+  if (district === "nilgiris") return 72;
+  if (district === "kanyakumari") return 78;
+  if (["nagapattinam","cuddalore","mayiladuthurai","tiruvarur"].includes(district)) return 78;
+  if (["ramanathapuram","thoothukudi"].includes(district)) return 72;
+  if (["coimbatore","erode","tiruppur","karur"].includes(district)) return 62;
+  if (["dharmapuri","krishnagiri"].includes(district)) return 60;
+  return 72;
+}
+
+function applyGeoGuard(result) {
+  const isCoffeeDistrict = COFFEE_DISTRICTS.has(currentDistrict);
+  if (!isCoffeeDistrict && result.recommended_crop === "coffee") {
+    const altCrops = (result.alternatives || []).filter(a => a.crop !== "coffee");
+    if (altCrops.length > 0) {
+      const newTop = altCrops[0];
+      result.alternatives = [
+        { crop: result.recommended_crop, confidence: result.confidence, confidence_label: result.confidence_label, feasible: false },
+        ...altCrops.slice(1)
+      ].filter(a => a.confidence >= 0.10);
+      result.recommended_crop = newTop.crop;
+      result.confidence       = newTop.confidence;
+      result.confidence_label = newTop.confidence_label;
+      result.warning = `Coffee is not suitable for ${currentDistrict.charAt(0).toUpperCase()+currentDistrict.slice(1)} region. Showing next best crop.`;
+    }
+  }
+  if (!isCoffeeDistrict && result.alternatives) {
+    result.alternatives = result.alternatives.filter(a => a.crop !== "coffee");
+  }
+  return result;
+}
+
+/* ══════════════════════════════════════════
+   SUBMIT FORM
+══════════════════════════════════════════ */
+async function submitForm() {
+  const resultDiv = document.getElementById("result");
+  const submitBtn = document.getElementById("submitBtn");
+
+  const N           = document.getElementById("N").value;
+  const P           = document.getElementById("P").value;
+  const K           = document.getElementById("K").value;
+  const temperature = document.getElementById("temperature").value;
+  const humidity    = document.getElementById("humidity").value;
+  const ph          = document.getElementById("ph").value;
+  const rainfall    = document.getElementById("rainfall").value;
+
+  if (!N||!P||!K||!temperature||!humidity||!ph||!rainfall) {
+    resultDiv.innerHTML = `<div class="result-error">⚠️ Please fill in all soil and climate fields before predicting.</div>`;
+    return;
+  }
+
+  submitBtn.disabled = true;
+  resultDiv.innerHTML = `<div class="result-loading"><div class="spinner"></div> Analysing soil &amp; climate data…</div>`;
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ N:+N, P:+P, K:+K, temperature:+temperature, humidity:+humidity, ph:+ph, rainfall:+rainfall })
+    });
+    if (!response.ok) throw new Error(`Server error ${response.status}`);
+    let result = await response.json();
+
+    result = applyGeoGuard(result);
+
+    const emoji     = cropEmoji[result.recommended_crop?.toLowerCase()] || "🌱";
+    const confClass = result.confidence_label || "moderate";
+    const confPct   = ((result.confidence || 0) * 100).toFixed(1);
+    const confLabels = { high:"High confidence", moderate:"Moderate confidence", low:"Low confidence", very_low:"Very low confidence" };
+
+    let warningHtml = "";
+    if (result.warning) {
+      warningHtml = `<div class="result-warning"><span>⚠️</span><span>${result.warning}</span></div>`;
+    }
+
+    let altsHtml = "";
+    const validAlts = (result.alternatives || []).filter(a => a.confidence >= 0.10);
+    if (validAlts.length) {
+      altsHtml = `
+        <div class="alt-label">Other Suitable Crops</div>
+        <div class="alt-list">
+          ${validAlts.map(c => `
+            <div class="alt-item">
+              <span>${cropEmoji[c.crop?.toLowerCase()]||'🌿'} ${c.crop}</span>
+              <div class="alt-bar-wrap"><div class="alt-bar" style="width:${(c.confidence*100).toFixed(0)}%"></div></div>
+              <span class="alt-pct">${(c.confidence*100).toFixed(1)}%</span>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    resultDiv.innerHTML = `
+      ${warningHtml}
+      <div class="result-success">
+        <div class="crop-main">
+          <div class="crop-badge">${emoji}</div>
+          <div class="crop-info">
+            <div class="crop-name">${result.recommended_crop}</div>
+            <div class="crop-sub">Top recommendation for your conditions</div>
+            <div class="confidence-row">
+              <span class="conf-badge conf-${confClass}">
+                <span class="conf-dot"></span>${confLabels[confClass]||confClass}
+              </span>
+              <div class="conf-bar-wrap">
+                <div class="conf-bar ${confClass}" style="width:${confPct}%"></div>
+              </div>
+              <span style="font-size:12px;color:var(--text-soft);font-weight:600;">${confPct}%</span>
+            </div>
+          </div>
+        </div>
+        ${altsHtml}
+      </div>`;
+
+    /* ── BUILD REPORT WITH CHARTS ── */
+    buildReport(result, { N, P, K, temperature, humidity, ph, rainfall });
+
+  } catch(err) {
+    resultDiv.innerHTML = `
+      <div class="result-error">
+        ❌ Could not connect to prediction server.<br/>
+        <small style="opacity:0.7">Ensure backend is running at ${BACKEND_URL}</small>
+      </div>`;
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
+window.addEventListener("load", async () => {
+  try {
+    const r = await fetch(`${BACKEND_URL}/`);
+    if (!r.ok) throw new Error();
+  } catch {
+    document.getElementById("result").innerHTML =
+      `<div class="result-error">⚠️ Backend server not detected. Please start the prediction server first.</div>`;
+  }
+});
+
+/* ══════════════════════════════════════════
+   CHART INSTANCES
+══════════════════════════════════════════ */
+let chartConfBar  = null;
+let chartRadar    = null;
+let chartDoughnut = null;
+
+const CHART_COLORS = ['#22c55e','#16a34a','#4ade80','#86efac','#facc15','#fb923c','#60a5fa','#a78bfa'];
+
+/* ══════════════════════════════════════════
+   BUILD REPORT
+══════════════════════════════════════════ */
+function buildReport(result, inputs) {
+  const confPct  = ((result.confidence || 0) * 100).toFixed(1);
+  const topCrop  = result.recommended_crop || '—';
+  const allCrops = [
+    { crop: topCrop, confidence: result.confidence },
+    ...(result.alternatives || []).filter(a => a.confidence >= 0.10)
+  ];
+
+  const paramSuit = calcParamSuitability(inputs, topCrop);
+
+  function statusTag(score) {
+    if (score >= 75) return '<span class="status-ok">✓ Optimal</span>';
+    if (score >= 45) return '<span class="status-mid">~ Moderate</span>';
+    return '<span class="status-low">✗ Low</span>';
+  }
+
+  const now = new Date();
+  const ts  = now.toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+
+  const reportHtml = `
+    <div class="report-section" id="predictionReport">
+      <div class="report-header">
+        <div class="report-title">📋 Prediction Report</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="report-meta">Generated: ${ts}</span>
+          <button class="btn-download" onclick="downloadReport()">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <div class="report-stats">
+        <div class="report-stat">
+          <div class="rs-val">${topCrop.charAt(0).toUpperCase()+topCrop.slice(1)}</div>
+          <div class="rs-lbl">Top Crop</div>
+        </div>
+        <div class="report-stat">
+          <div class="rs-val">${confPct}%</div>
+          <div class="rs-lbl">Confidence</div>
+        </div>
+        <div class="report-stat">
+          <div class="rs-val">${allCrops.length}</div>
+          <div class="rs-lbl">Crop Options</div>
+        </div>
+        <div class="report-stat">
+          <div class="rs-val">${Math.round(paramSuit.overall)}%</div>
+          <div class="rs-lbl">Soil Match</div>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-box">
+          <h4>📊 Crop Confidence Scores</h4>
+          <canvas id="chartConfBar" height="180"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>🕸 Soil &amp; Climate Suitability</h4>
+          <canvas id="chartRadar" height="180"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>🥧 Top Crop Probability Share</h4>
+          <canvas id="chartDoughnut" height="160"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>📏 Parameter Suitability Breakdown</h4>
+          <div class="suitability-row" id="suitRow"></div>
+        </div>
+      </div>
+
+      <div class="chart-box full-width">
+        <h4>🔬 Input Parameters Summary</h4>
+        <table class="param-table">
+          <thead>
+            <tr>
+              <th>Parameter</th><th>Your Value</th><th>Typical Range</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Nitrogen (N)</td><td>${inputs.N} kg/ha</td><td>0 – 140</td><td>${statusTag(paramSuit.N)}</td></tr>
+            <tr><td>Phosphorus (P)</td><td>${inputs.P} kg/ha</td><td>5 – 145</td><td>${statusTag(paramSuit.P)}</td></tr>
+            <tr><td>Potassium (K)</td><td>${inputs.K} kg/ha</td><td>5 – 205</td><td>${statusTag(paramSuit.K)}</td></tr>
+            <tr><td>Temperature</td><td>${inputs.temperature} °C</td><td>8 – 44</td><td>${statusTag(paramSuit.temp)}</td></tr>
+            <tr><td>Humidity</td><td>${inputs.humidity} %</td><td>14 – 100</td><td>${statusTag(paramSuit.humidity)}</td></tr>
+            <tr><td>Soil pH</td><td>${inputs.ph}</td><td>3.5 – 9.9</td><td>${statusTag(paramSuit.ph)}</td></tr>
+            <tr><td>Rainfall</td><td>${inputs.rainfall} mm</td><td>20 – 300</td><td>${statusTag(paramSuit.rainfall)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+
+  document.getElementById('result').insertAdjacentHTML('beforeend', reportHtml);
+
+  /* Suitability bars */
+  const suitItems = [
+    { label:'Nitrogen',    score: paramSuit.N,        color:'#22c55e' },
+    { label:'Phosphorus',  score: paramSuit.P,        color:'#16a34a' },
+    { label:'Potassium',   score: paramSuit.K,        color:'#4ade80' },
+    { label:'Temperature', score: paramSuit.temp,     color:'#facc15' },
+    { label:'Humidity',    score: paramSuit.humidity, color:'#60a5fa' },
+    { label:'Soil pH',     score: paramSuit.ph,       color:'#a78bfa' },
+    { label:'Rainfall',    score: paramSuit.rainfall, color:'#fb923c' },
+  ];
+  const suitRow = document.getElementById('suitRow');
+  suitItems.forEach(item => {
+    suitRow.insertAdjacentHTML('beforeend', `
+      <div class="suit-item">
+        <span class="suit-label">${item.label}</span>
+        <div class="suit-bar-bg">
+          <div class="suit-bar-fill" style="width:${item.score}%;background:${item.color}"></div>
+        </div>
+        <span class="suit-pct">${Math.round(item.score)}%</span>
+      </div>`);
+  });
+
+  /* Chart 1 — Bar */
+  if (chartConfBar) chartConfBar.destroy();
+  chartConfBar = new Chart(document.getElementById('chartConfBar').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: allCrops.map(c => c.crop.charAt(0).toUpperCase()+c.crop.slice(1)),
+      datasets: [{
+        label: 'Confidence %',
+        data: allCrops.map(c => +(c.confidence*100).toFixed(1)),
+        backgroundColor: allCrops.map((_,i) => CHART_COLORS[i % CHART_COLORS.length]),
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero:true, max:100,
+             ticks:{ callback: v => v+'%', font:{size:10} },
+             grid:{ color:'#f3f4f6' } },
+        x: { ticks:{ font:{size:10} }, grid:{ display:false } }
+      }
+    }
+  });
+
+  /* Chart 2 — Radar */
+  if (chartRadar) chartRadar.destroy();
+  chartRadar = new Chart(document.getElementById('chartRadar').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: ['Nitrogen','Phosphorus','Potassium','Temperature','Humidity','Soil pH','Rainfall'],
+      datasets: [{
+        label: 'Your Field',
+        data: [paramSuit.N, paramSuit.P, paramSuit.K, paramSuit.temp, paramSuit.humidity, paramSuit.ph, paramSuit.rainfall],
+        backgroundColor: 'rgba(34,197,94,0.18)',
+        borderColor: '#22c55e', borderWidth: 2,
+        pointBackgroundColor: '#22c55e', pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          beginAtZero: true, max: 100,
+          ticks: { display: false },
+          pointLabels: { font:{ size:10 } },
+          grid: { color:'#e5e7eb' },
+          angleLines: { color:'#e5e7eb' }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  /* Chart 3 — Doughnut */
+  if (chartDoughnut) chartDoughnut.destroy();
+  const top3 = allCrops.slice(0, 3);
+  chartDoughnut = new Chart(document.getElementById('chartDoughnut').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: top3.map(c => c.crop.charAt(0).toUpperCase()+c.crop.slice(1)),
+      datasets: [{
+        data: top3.map(c => +(c.confidence*100).toFixed(1)),
+        backgroundColor: ['#22c55e','#16a34a','#4ade80'],
+        borderColor: '#ffffff', borderWidth: 3, hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true, cutout: '62%',
+      plugins: {
+        legend: { position:'bottom', labels:{ font:{size:11}, padding:12, boxWidth:14 } }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════
+   CALC PARAM SUITABILITY
+══════════════════════════════════════════ */
+function calcParamSuitability(inputs, crop) {
+  function score(val, low, il, ih, high) {
+    val = +val;
+    if (val < low || val > high) return 10;
+    if (val >= il && val <= ih) return 95;
+    if (val < il) return 40 + 55 * ((val - low) / (il - low));
+    return 40 + 55 * ((high - val) / (high - ih));
+  }
+  const N    = score(inputs.N,           0,   60,  120, 140);
+  const P    = score(inputs.P,           5,   30,   90, 145);
+  const K    = score(inputs.K,           5,   30,  120, 205);
+  const temp = score(inputs.temperature, 8,   18,   35,  44);
+  const hum  = score(inputs.humidity,   14,   50,   90, 100);
+  const ph   = score(inputs.ph,        3.5,  5.5,  7.5, 9.9);
+  const rain = score(inputs.rainfall,   20,   80,  220, 300);
+  const overall = (N+P+K+temp+hum+ph+rain) / 7;
+  return { N, P, K, temp, humidity: hum, ph, rainfall: rain, overall };
+}
+
+/* ══════════════════════════════════════════
+   DOWNLOAD PDF
+══════════════════════════════════════════ */
+function downloadReport() {
+  const style = document.createElement('style');
+  style.id = '__print_style';
+  style.innerHTML = `
+    @media print {
+      body::before, body::after { display:none !important; }
+      body { background: white !important; }
+      .page-wrapper { display:block !important; background:white; }
+      .header, .side-panel, .right-panel,
+      .card-header, .steps, .section-label,
+      .input-row, .submit-area, .back-btn,
+      .btn-predict, .btn-reset, .btn-download,
+      .result-loading, .result-error { display:none !important; }
+      .form-card { box-shadow:none !important; border:1px solid #e5e7eb !important; width:100% !important; max-width:100% !important; margin:0 !important; }
+      .card-body { padding: 12px !important; }
+      #result { margin-top: 0 !important; }
+      .result-success { break-inside: avoid; }
+      .report-section { break-inside: avoid; }
+      .chart-box { break-inside: avoid; border: 1px solid #e5e7eb !important; }
+      canvas { max-height: 220px !important; }
+    }`;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(() => document.getElementById('__print_style')?.remove(), 2000);
+}
+</script>
+</body>
+</html>
