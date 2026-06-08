@@ -6,7 +6,7 @@ The AI-Based Real-Time Crop Risk Prediction System is a smart agriculture web ap
 
 🏗️ System Architecture
 <p align="center">
-  <img width="700" alt="System Architecture" src="https://github.com/user-attachments/assets/92dac81b-83ec-4d76-a71b-00862760baea" />
+  <img width="700" alt="System Architecture" src="https://github.com/user-attachments/assets/f7ade0f7-469e-4746-8c10-9668c76a7676"/>
 </p>
 This project aims to support sustainable farming practices through an easy-to-use and multilingual platform with real-time insights and guidance.
 
